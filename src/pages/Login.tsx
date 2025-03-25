@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Eye, EyeOff, UserIcon, KeyIcon } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff, UserIcon, KeyIcon, Star } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -382,3 +381,4 @@ const Login = () => {
 };
 
 export default Login;
+
