@@ -10,6 +10,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { Search, Filter, Star, MapPin, Clock, Calendar, Heart, Award } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Link } from 'react-router-dom';
 
 const caregivers = [
   {
@@ -141,9 +142,11 @@ const CaregiverCard = ({ caregiver }) => {
             </div>
             
             <div className="mt-4">
-              <Button className="w-full md:w-auto bg-eldercare-blue hover:bg-blue-600">
-                View Profile
-              </Button>
+              <Link to={`/caregivers/booking/${caregiver.id}`}>
+                <Button className="w-full md:w-auto bg-eldercare-blue hover:bg-blue-600">
+                  Book Now
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
