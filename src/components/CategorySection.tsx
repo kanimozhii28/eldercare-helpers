@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Heart, Utensils, Users, First, ShieldAlert, CalendarClock } from 'lucide-react';
+import { Heart, Utensils, Users, Activity, ShieldAlert, CalendarClock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 interface CategoryCardProps {
@@ -47,7 +47,7 @@ const categories = [
     link: "/services/personal-care"
   },
   {
-    icon: <First className="w-6 h-6 text-eldercare-blue" />,
+    icon: <Activity className="w-6 h-6 text-eldercare-blue" />,
     title: "Health Support",
     description: "Medication reminders, vital signs monitoring, and health assistance.",
     link: "/services/health-support"
