@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Input } from '@/components/ui/input';
@@ -10,8 +10,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { Search, Filter, Star, MapPin, Clock, Calendar, Heart, Award } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
+// Expanded caregivers array with more profiles and categories
 const caregivers = [
   {
     id: 1,
@@ -26,7 +27,8 @@ const caregivers = [
     hourlyRate: 28,
     availability: "Weekdays, Evenings",
     verified: true,
-    topRated: true
+    topRated: true,
+    category: "cooking"
   },
   {
     id: 2,
@@ -41,7 +43,8 @@ const caregivers = [
     hourlyRate: 25,
     availability: "Weekends, Nights",
     verified: true,
-    topRated: false
+    topRated: false,
+    category: "alzheimer"
   },
   {
     id: 3,
@@ -56,7 +59,8 @@ const caregivers = [
     hourlyRate: 32,
     availability: "Full-time",
     verified: true,
-    topRated: true
+    topRated: true,
+    category: "medical"
   },
   {
     id: 4,
@@ -71,7 +75,72 @@ const caregivers = [
     hourlyRate: 26,
     availability: "Mornings, Afternoons",
     verified: true,
-    topRated: false
+    topRated: false,
+    category: "mobility"
+  },
+  {
+    id: 5,
+    name: "Olivia Thompson",
+    image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
+    rating: 4.9,
+    reviews: 112,
+    location: "Staten Island, NY",
+    distance: "7.1 miles away",
+    experience: "9 years",
+    specialties: ["Meal Preparation", "Nutrition Planning", "Special Diets"],
+    hourlyRate: 30,
+    availability: "Weekdays, Weekends",
+    verified: true,
+    topRated: true,
+    category: "cooking"
+  },
+  {
+    id: 6,
+    name: "David Kumar",
+    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
+    rating: 4.7,
+    reviews: 94,
+    location: "Brooklyn, NY",
+    distance: "3.4 miles away",
+    experience: "6 years",
+    specialties: ["Housekeeping", "Laundry", "Organization"],
+    hourlyRate: 24,
+    availability: "Mornings, Afternoons",
+    verified: true,
+    topRated: false,
+    category: "housekeeping"
+  },
+  {
+    id: 7,
+    name: "Grace Lee",
+    image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
+    rating: 4.8,
+    reviews: 132,
+    location: "Manhattan, NY",
+    distance: "2.2 miles away",
+    experience: "11 years",
+    specialties: ["Overnight Care", "Sleep Monitoring", "Evening Routines"],
+    hourlyRate: 35,
+    availability: "Nights, Weekends",
+    verified: true,
+    topRated: true,
+    category: "overnight"
+  },
+  {
+    id: 8,
+    name: "Robert Martinez",
+    image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
+    rating: 4.5,
+    reviews: 76,
+    location: "Queens, NY",
+    distance: "4.7 miles away",
+    experience: "5 years",
+    specialties: ["Transportation", "Errands", "Shopping"],
+    hourlyRate: 27,
+    availability: "Weekdays, Mornings",
+    verified: true,
+    topRated: false,
+    category: "transportation"
   }
 ];
 
@@ -157,6 +226,33 @@ const CaregiverCard = ({ caregiver }) => {
 
 const Caregivers = () => {
   const [priceRange, setPriceRange] = useState([20, 50]);
+  const [filteredCaregivers, setFilteredCaregivers] = useState(caregivers);
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const location = useLocation();
+  
+  useEffect(() => {
+    // Get category from URL query parameters
+    const queryParams = new URLSearchParams(location.search);
+    const category = queryParams.get('category');
+    
+    if (category) {
+      setSelectedCategory(category);
+      filterCaregivers(category);
+    }
+  }, [location]);
+  
+  const filterCaregivers = (category) => {
+    if (category === "all") {
+      setFilteredCaregivers(caregivers);
+    } else {
+      setFilteredCaregivers(caregivers.filter(caregiver => caregiver.category === category));
+    }
+  };
+  
+  const handleCategoryChange = (category) => {
+    setSelectedCategory(category);
+    filterCaregivers(category);
+  };
   
   return (
     <div className="min-h-screen flex flex-col">
@@ -177,17 +273,27 @@ const Caregivers = () => {
               </div>
               
               <div className="w-full md:w-48">
-                <Select defaultValue="all">
+                <Select 
+                  value={selectedCategory}
+                  onValueChange={handleCategoryChange}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Specialties" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Specialties</SelectItem>
-                    <SelectItem value="dementia">Dementia Care</SelectItem>
-                    <SelectItem value="alzheimers">Alzheimer's Care</SelectItem>
-                    <SelectItem value="parkinsons">Parkinson's Care</SelectItem>
-                    <SelectItem value="post-hospital">Post-Hospital Care</SelectItem>
-                    <SelectItem value="meal-prep">Meal Preparation</SelectItem>
+                    <SelectItem value="cooking">Cooking & Meal Prep</SelectItem>
+                    <SelectItem value="personal">Personal Care</SelectItem>
+                    <SelectItem value="medical">Medical Care</SelectItem>
+                    <SelectItem value="companion">Companion Care</SelectItem>
+                    <SelectItem value="alzheimer">Alzheimer's Care</SelectItem>
+                    <SelectItem value="housekeeping">Housekeeping</SelectItem>
+                    <SelectItem value="mobility">Mobility Assistance</SelectItem>
+                    <SelectItem value="overnight">Overnight Care</SelectItem>
+                    <SelectItem value="respite">Respite Care</SelectItem>
+                    <SelectItem value="medication">Medication Management</SelectItem>
+                    <SelectItem value="transportation">Transportation</SelectItem>
+                    <SelectItem value="therapy">Physical Therapy</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -245,6 +351,33 @@ const Caregivers = () => {
                         <span>${priceRange[1]}</span>
                       </div>
                     </div>
+                  </div>
+                  
+                  <div>
+                    <h4 className="text-sm font-medium mb-3">Category</h4>
+                    <Select 
+                      value={selectedCategory}
+                      onValueChange={handleCategoryChange}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Categories</SelectItem>
+                        <SelectItem value="cooking">Cooking & Meal Prep</SelectItem>
+                        <SelectItem value="personal">Personal Care</SelectItem>
+                        <SelectItem value="medical">Medical Care</SelectItem>
+                        <SelectItem value="companion">Companion Care</SelectItem>
+                        <SelectItem value="alzheimer">Alzheimer's Care</SelectItem>
+                        <SelectItem value="housekeeping">Housekeeping</SelectItem>
+                        <SelectItem value="mobility">Mobility Assistance</SelectItem>
+                        <SelectItem value="overnight">Overnight Care</SelectItem>
+                        <SelectItem value="respite">Respite Care</SelectItem>
+                        <SelectItem value="medication">Medication Management</SelectItem>
+                        <SelectItem value="transportation">Transportation</SelectItem>
+                        <SelectItem value="therapy">Physical Therapy</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   
                   <div>
@@ -306,7 +439,7 @@ const Caregivers = () => {
           <div className="w-full lg:w-3/4">
             <div className="flex justify-between items-center mb-6">
               <div>
-                <h2 className="text-xl font-semibold">24 caregivers available</h2>
+                <h2 className="text-xl font-semibold">{filteredCaregivers.length} caregivers available</h2>
                 <p className="text-muted-foreground">Find your ideal match</p>
               </div>
               
@@ -326,32 +459,45 @@ const Caregivers = () => {
             </div>
             
             <div className="space-y-6">
-              {caregivers.map((caregiver) => (
+              {filteredCaregivers.map((caregiver) => (
                 <CaregiverCard key={caregiver.id} caregiver={caregiver} />
               ))}
             </div>
             
-            <div className="mt-8">
-              <Pagination>
-                <PaginationContent>
-                  <PaginationItem>
-                    <PaginationPrevious href="#" />
-                  </PaginationItem>
-                  <PaginationItem>
-                    <PaginationLink href="#" isActive>1</PaginationLink>
-                  </PaginationItem>
-                  <PaginationItem>
-                    <PaginationLink href="#">2</PaginationLink>
-                  </PaginationItem>
-                  <PaginationItem>
-                    <PaginationLink href="#">3</PaginationLink>
-                  </PaginationItem>
-                  <PaginationItem>
-                    <PaginationNext href="#" />
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
-            </div>
+            {filteredCaregivers.length > 0 ? (
+              <div className="mt-8">
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious href="#" />
+                    </PaginationItem>
+                    <PaginationItem>
+                      <PaginationLink href="#" isActive>1</PaginationLink>
+                    </PaginationItem>
+                    <PaginationItem>
+                      <PaginationLink href="#">2</PaginationLink>
+                    </PaginationItem>
+                    <PaginationItem>
+                      <PaginationLink href="#">3</PaginationLink>
+                    </PaginationItem>
+                    <PaginationItem>
+                      <PaginationNext href="#" />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-lg text-muted-foreground">No caregivers found for this category.</p>
+                <Button 
+                  onClick={() => handleCategoryChange("all")} 
+                  variant="outline" 
+                  className="mt-4"
+                >
+                  View All Caregivers
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>

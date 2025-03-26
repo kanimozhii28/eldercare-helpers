@@ -17,21 +17,73 @@ const VoiceAssistant = () => {
   // Create a recognition object if the browser supports it
   const [recognition, setRecognition] = useState(null);
 
-  // Define caregiver categories
+  // Define caregiver categories with more detailed descriptions
   const caregiverCategories = {
-    'cooking': 'Cooking and Meal Preparation',
-    'personal': 'Personal Care',
-    'medical': 'Medical Care',
-    'companion': 'Companion Care',
-    'alzheimer': 'Alzheimer\'s and Dementia Care',
-    'housekeeping': 'Housekeeping and Cleaning',
-    'mobility': 'Mobility Assistance',
-    'overnight': 'Overnight Care',
-    'respite': 'Respite Care',
-    'medication': 'Medication Management',
-    'transportation': 'Transportation and Errands',
-    'therapy': 'Physical Therapy Support',
-    'transitional': 'Transitional Care'
+    'cooking': {
+      name: 'Cooking and Meal Preparation',
+      description: 'Specialists in preparing nutritious meals and following dietary requirements',
+      path: '/caregivers?category=cooking'
+    },
+    'personal': {
+      name: 'Personal Care',
+      description: 'Assistance with bathing, dressing, grooming, and other personal needs',
+      path: '/caregivers?category=personal'
+    },
+    'medical': {
+      name: 'Medical Care',
+      description: 'Skilled care for medical conditions and health monitoring',
+      path: '/caregivers?category=medical'
+    },
+    'companion': {
+      name: 'Companion Care',
+      description: 'Social interaction, conversation, and companionship for emotional wellbeing',
+      path: '/caregivers?category=companion'
+    },
+    'alzheimer': {
+      name: 'Alzheimer\'s and Dementia Care',
+      description: 'Specialized care for seniors with memory-related conditions',
+      path: '/caregivers?category=alzheimer'
+    },
+    'housekeeping': {
+      name: 'Housekeeping and Cleaning',
+      description: 'Help with keeping the home clean, organized, and safe',
+      path: '/caregivers?category=housekeeping'
+    },
+    'mobility': {
+      name: 'Mobility Assistance',
+      description: 'Support with walking, transferring, and preventing falls',
+      path: '/caregivers?category=mobility'
+    },
+    'overnight': {
+      name: 'Overnight Care',
+      description: '24-hour supervision and assistance during the night',
+      path: '/caregivers?category=overnight'
+    },
+    'respite': {
+      name: 'Respite Care',
+      description: 'Temporary relief for family caregivers who need a break',
+      path: '/caregivers?category=respite'
+    },
+    'medication': {
+      name: 'Medication Management',
+      description: 'Ensuring medications are taken correctly and on schedule',
+      path: '/caregivers?category=medication'
+    },
+    'transportation': {
+      name: 'Transportation and Errands',
+      description: 'Help with appointments, shopping, and other outings',
+      path: '/caregivers?category=transportation'
+    },
+    'therapy': {
+      name: 'Physical Therapy Support',
+      description: 'Assistance with exercises prescribed by physical therapists',
+      path: '/caregivers?category=therapy'
+    },
+    'transitional': {
+      name: 'Transitional Care',
+      description: 'Support when returning home after hospitalization',
+      path: '/caregivers?category=transitional'
+    }
   };
 
   useEffect(() => {
@@ -119,7 +171,7 @@ const VoiceAssistant = () => {
       }
       
       // Also check for plural forms or variations
-      if (key === 'cooking' && (query.includes('cook') || query.includes('chef'))) {
+      if (key === 'cooking' && (query.includes('cook') || query.includes('chef') || query.includes('meal'))) {
         return { key, value };
       }
       if (key === 'medical' && (query.includes('nurse') || query.includes('doctor') || query.includes('health'))) {
@@ -132,6 +184,12 @@ const VoiceAssistant = () => {
         return { key, value };
       }
       if (key === 'transportation' && (query.includes('drive') || query.includes('car') || query.includes('errands'))) {
+        return { key, value };
+      }
+      if (key === 'alzheimer' && (query.includes('dementia') || query.includes('memory') || query.includes('alzheimer'))) {
+        return { key, value };
+      }
+      if (key === 'overnight' && (query.includes('night') || query.includes('24 hour') || query.includes('sleep'))) {
         return { key, value };
       }
     }
@@ -155,12 +213,12 @@ const VoiceAssistant = () => {
       // Check for category matches first
       const categoryMatch = findCategoryMatch(query);
       if (categoryMatch) {
-        botResponse = `I can help you find caregivers specializing in ${categoryMatch.value}. Would you like to see caregivers with this expertise?`;
+        botResponse = `I can help you find caregivers specializing in ${categoryMatch.value.name}. ${categoryMatch.value.description}. Would you like to see caregivers with this expertise?`;
         
         actions = [
           { 
-            label: `View ${categoryMatch.value} Caregivers`, 
-            path: `/caregivers?category=${encodeURIComponent(categoryMatch.key)}` 
+            label: `View ${categoryMatch.value.name} Caregivers`, 
+            path: categoryMatch.value.path
           },
           { label: 'View All Caregivers', path: '/caregivers' }
         ];
