@@ -1,12 +1,56 @@
 
-import React, { useState } from 'react';
-import { Mic, X, MessageSquare } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Mic, X, MessageSquare, Loader, MicOff } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 
 const VoiceAssistant = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [response, setResponse] = useState('');
+  const [chatHistory, setChatHistory] = useState([]);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  
+  // Create a recognition object if the browser supports it
+  const [recognition, setRecognition] = useState(null);
+
+  useEffect(() => {
+    // Initialize speech recognition if supported by the browser
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognitionInstance = new SpeechRecognition();
+      
+      recognitionInstance.continuous = false;
+      recognitionInstance.interimResults = false;
+      recognitionInstance.lang = 'en-US';
+      
+      recognitionInstance.onresult = (event) => {
+        const current = event.resultIndex;
+        const userTranscript = event.results[current][0].transcript;
+        setTranscript(userTranscript);
+        handleQueryResponse(userTranscript);
+      };
+      
+      recognitionInstance.onerror = (event) => {
+        console.error('Speech recognition error', event.error);
+        setIsListening(false);
+        toast({
+          title: "Speech recognition error",
+          description: "Please try again or type your question.",
+          variant: "destructive"
+        });
+      };
+      
+      recognitionInstance.onend = () => {
+        setIsListening(false);
+      };
+      
+      setRecognition(recognitionInstance);
+    }
+  }, [toast]);
 
   const toggleAssistant = () => {
     setIsOpen(!isOpen);
@@ -18,19 +62,159 @@ const VoiceAssistant = () => {
   };
 
   const handleListen = () => {
-    // In a real app, we would implement actual speech recognition here
-    setIsListening(true);
+    if (!recognition) {
+      // Speech recognition not supported
+      toast({
+        title: "Speech recognition not supported",
+        description: "Your browser doesn't support speech recognition. Please type your question instead.",
+        variant: "destructive"
+      });
+      return;
+    }
     
-    // Mock speech recognition for demo
-    setTimeout(() => {
+    try {
+      setIsListening(true);
+      recognition.start();
+    } catch (error) {
+      console.error('Speech recognition error:', error);
       setIsListening(false);
-      setTranscript('I need help finding a caregiver for my mother who needs assistance with meals.');
+    }
+  };
+
+  const handleStopListening = () => {
+    if (recognition && isListening) {
+      recognition.stop();
+      setIsListening(false);
+    }
+  };
+
+  const handleQueryResponse = (query) => {
+    // Add user's query to chat history
+    setChatHistory(prev => [...prev, { type: 'user', text: query }]);
+    
+    setIsProcessing(true);
+    
+    // Simulate AI processing
+    setTimeout(() => {
+      setIsProcessing(false);
       
-      // Mock response
-      setTimeout(() => {
-        setResponse("I can help you find a caregiver specialized in meal preparation. Would you like me to search for available caregivers in your area?");
-      }, 1000);
-    }, 2000);
+      // Simple pattern matching for demonstration
+      let botResponse = "";
+      
+      if (query.toLowerCase().includes("caregiver") || query.toLowerCase().includes("care giver")) {
+        botResponse = "I can help you find a caregiver. Would you like to see available caregivers or learn about our caregiving services?";
+        
+        // Add suggestion to navigate to caregivers page
+        setChatHistory(prev => [
+          ...prev, 
+          { 
+            type: 'assistant', 
+            text: botResponse,
+            actions: [
+              { label: 'Find Caregivers', path: '/caregivers' },
+              { label: 'Learn About Services', path: '/services' }
+            ]
+          }
+        ]);
+      } else if (query.toLowerCase().includes("service") || query.toLowerCase().includes("services")) {
+        botResponse = "We offer a variety of eldercare services including personal care, companion care, specialized care, and home health care. Would you like to learn more about any specific service?";
+        
+        setChatHistory(prev => [
+          ...prev, 
+          { 
+            type: 'assistant', 
+            text: botResponse,
+            actions: [
+              { label: 'View All Services', path: '/services' },
+              { label: 'View Care Plans', path: '/care-plans' }
+            ]
+          }
+        ]);
+      } else if (query.toLowerCase().includes("book") || query.toLowerCase().includes("booking") || query.toLowerCase().includes("appointment")) {
+        botResponse = "I can help you book a caregiver. You can view available caregivers and schedule an appointment.";
+        
+        setChatHistory(prev => [
+          ...prev, 
+          { 
+            type: 'assistant', 
+            text: botResponse,
+            actions: [
+              { label: 'Book a Caregiver', path: '/caregivers' }
+            ]
+          }
+        ]);
+      } else if (query.toLowerCase().includes("login") || query.toLowerCase().includes("account")) {
+        botResponse = "You can log in to your account to manage your bookings, view your profile, and more.";
+        
+        setChatHistory(prev => [
+          ...prev, 
+          { 
+            type: 'assistant', 
+            text: botResponse,
+            actions: [
+              { label: 'Login', path: '/login' },
+              { label: 'View Profile', path: '/profile' }
+            ]
+          }
+        ]);
+      } else if (query.toLowerCase().includes("track") || query.toLowerCase().includes("tracking")) {
+        botResponse = "You can track your caregiver's location in real-time during active bookings.";
+        
+        setChatHistory(prev => [
+          ...prev, 
+          { 
+            type: 'assistant', 
+            text: botResponse,
+            actions: [
+              { label: 'Live Tracking', path: '/live-tracking' }
+            ]
+          }
+        ]);
+      } else if (query.toLowerCase().includes("care plan") || query.toLowerCase().includes("care plans")) {
+        botResponse = "We offer standard and customized care plans to meet your specific needs.";
+        
+        setChatHistory(prev => [
+          ...prev, 
+          { 
+            type: 'assistant', 
+            text: botResponse,
+            actions: [
+              { label: 'View Care Plans', path: '/care-plans' }
+            ]
+          }
+        ]);
+      } else {
+        botResponse = "I'm here to help with questions about our eldercare services, caregivers, bookings, and more. How can I assist you today?";
+        
+        setChatHistory(prev => [
+          ...prev, 
+          { 
+            type: 'assistant', 
+            text: botResponse,
+            actions: [
+              { label: 'Browse Services', path: '/services' },
+              { label: 'Find Caregivers', path: '/caregivers' },
+              { label: 'How It Works', path: '/how-it-works' }
+            ]
+          }
+        ]);
+      }
+      
+      setResponse(botResponse);
+    }, 1500);
+  };
+
+  const handleTextSubmit = (e) => {
+    e.preventDefault();
+    if (!transcript.trim()) return;
+    
+    handleQueryResponse(transcript);
+    setTranscript('');
+  };
+
+  const handleActionClick = (path) => {
+    setIsOpen(false);
+    navigate(path);
   };
 
   return (
@@ -65,39 +249,69 @@ const VoiceAssistant = () => {
             </p>
           </div>
           
-          <div className="p-6 max-h-96 overflow-y-auto">
-            {transcript && (
-              <div className="mb-4">
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-eldercare-warmGray flex items-center justify-center flex-shrink-0">
-                    <MessageSquare className="w-4 h-4" />
+          <div className="p-6 max-h-96 overflow-y-auto bg-white">
+            {chatHistory.length > 0 ? (
+              <div className="space-y-4">
+                {chatHistory.map((message, index) => (
+                  <div key={index} className="mb-4">
+                    <div className="flex items-start gap-3">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                        message.type === 'user' 
+                          ? 'bg-eldercare-warmGray' 
+                          : 'bg-eldercare-blue/10'
+                      }`}>
+                        {message.type === 'user' ? (
+                          <MessageSquare className="w-4 h-4 text-white" />
+                        ) : (
+                          <Mic className="w-4 h-4 text-eldercare-blue" />
+                        )}
+                      </div>
+                      <div className={`p-3 rounded-2xl rounded-tl-none ${
+                        message.type === 'user' 
+                          ? 'bg-eldercare-warmGray/10' 
+                          : 'bg-eldercare-lightBlue'
+                      }`}>
+                        <p className="text-sm">{message.text}</p>
+                        
+                        {message.actions && (
+                          <div className="flex flex-wrap gap-2 mt-3">
+                            {message.actions.map((action, actionIndex) => (
+                              <button
+                                key={actionIndex}
+                                onClick={() => handleActionClick(action.path)}
+                                className="px-3 py-1 text-xs bg-eldercare-blue text-white rounded-full hover:bg-blue-600 transition-colors"
+                              >
+                                {action.label}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <div className="glass p-3 rounded-2xl rounded-tl-none">
-                    <p className="text-sm">{transcript}</p>
+                ))}
+                
+                {isProcessing && (
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-eldercare-blue/10 flex items-center justify-center flex-shrink-0">
+                      <Loader className="w-4 h-4 text-eldercare-blue animate-spin" />
+                    </div>
+                    <div className="bg-eldercare-lightBlue p-3 rounded-2xl rounded-tl-none">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-2 h-2 bg-eldercare-blue rounded-full animate-pulse"></div>
+                        <div className="w-2 h-2 bg-eldercare-blue rounded-full animate-pulse delay-75"></div>
+                        <div className="w-2 h-2 bg-eldercare-blue rounded-full animate-pulse delay-150"></div>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
-            )}
-            
-            {response && (
-              <div className="mb-4">
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-eldercare-blue/10 flex items-center justify-center flex-shrink-0">
-                    <Mic className="w-4 h-4 text-eldercare-blue" />
-                  </div>
-                  <div className="bg-eldercare-lightBlue p-3 rounded-2xl rounded-tl-none">
-                    <p className="text-sm">{response}</p>
-                  </div>
-                </div>
-              </div>
-            )}
-            
-            {!transcript && !response && (
+            ) : (
               <div className="text-center py-8">
                 <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-eldercare-lightBlue flex items-center justify-center">
                   <Mic className="w-8 h-8 text-eldercare-blue" />
                 </div>
-                <p className="text-muted-foreground mb-4">
+                <p className="text-gray-700 mb-4">
                   How can I help you today?
                 </p>
                 <p className="text-xs text-muted-foreground mb-6">
@@ -107,25 +321,33 @@ const VoiceAssistant = () => {
             )}
           </div>
           
-          <div className="p-4 border-t border-border">
-            <div className="flex gap-2">
+          <div className="p-4 border-t border-border bg-white">
+            <form onSubmit={handleTextSubmit} className="flex gap-2">
               <input
                 type="text"
                 placeholder="Type your question..."
                 className="flex-1 px-4 py-2 rounded-full bg-muted border border-border focus:outline-none focus:ring-2 focus:ring-eldercare-blue/20"
+                value={transcript}
+                onChange={(e) => setTranscript(e.target.value)}
               />
-              <button
-                onClick={handleListen}
-                className={`p-3 rounded-full btn-press ${
-                  isListening 
-                    ? 'bg-red-500 text-white animate-pulse' 
-                    : 'bg-eldercare-blue text-white'
-                }`}
-                disabled={isListening}
-              >
-                <Mic className="w-5 h-5" />
-              </button>
-            </div>
+              {isListening ? (
+                <button
+                  type="button"
+                  onClick={handleStopListening}
+                  className="p-3 rounded-full btn-press bg-red-500 text-white animate-pulse"
+                >
+                  <MicOff className="w-5 h-5" />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleListen}
+                  className="p-3 rounded-full btn-press bg-eldercare-blue text-white"
+                >
+                  <Mic className="w-5 h-5" />
+                </button>
+              )}
+            </form>
           </div>
         </div>
       )}

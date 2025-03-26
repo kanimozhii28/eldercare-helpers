@@ -12,8 +12,14 @@ import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import ServiceDetail from "./pages/ServiceDetail";
 import CaregiverBooking from "./pages/CaregiverBooking";
+import CaregiverProfile from "./pages/CaregiverProfile";
 import LiveTracking from "./pages/LiveTracking";
 import Payment from "./pages/Payment";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import ReviewBooking from "./pages/ReviewBooking";
+import Profile from "./pages/Profile";
+import CarePlans from "./pages/CarePlans";
+import VoiceAssistant from "./components/VoiceAssistant";
 
 const queryClient = new QueryClient();
 
@@ -28,13 +34,19 @@ const App = () => (
           <Route path="/services" element={<Services />} />
           <Route path="/services/:serviceId" element={<ServiceDetail />} />
           <Route path="/caregivers" element={<Caregivers />} />
+          <Route path="/caregivers/:caregiverId" element={<CaregiverProfile />} />
           <Route path="/caregivers/booking/:caregiverId" element={<CaregiverBooking />} />
           <Route path="/how-it-works" element={<HowItWorks />} />
           <Route path="/login" element={<Login />} />
           <Route path="/live-tracking" element={<LiveTracking />} />
           <Route path="/payment" element={<Payment />} />
+          <Route path="/payment-success" element={<PaymentSuccess />} />
+          <Route path="/review-booking" element={<ReviewBooking />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/care-plans" element={<CarePlans />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <VoiceAssistant />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
