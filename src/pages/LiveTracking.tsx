@@ -1,7 +1,6 @@
-
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Clock, MapPin, Calendar, User, Check, AlertTriangle, Home, Phone, MessageSquare } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Clock, MapPin, Calendar, User, Check, AlertTriangle, Home, Phone, MessageSquare, Star } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
@@ -10,13 +9,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
+
+mapboxgl.accessToken = 'pk.eyJ1IjoiZXhhbXBsZXRva2VuIiwiYSI6ImNrczluNW92dDFwbHEycW50bWt6M3E3aXMifQ.pt5_mViRYVJ1_t-z_xCFUQ';
 
 const LiveTracking = () => {
   const [careProgress, setCareProgress] = useState(0);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const navigate = useNavigate();
+  const mapContainer = useRef(null);
+  const map = useRef(null);
+  const [mapInitialized, setMapInitialized] = useState(false);
   
   useEffect(() => {
-    // Update the progress bar to simulate an ongoing care session
     const interval = setInterval(() => {
       setCareProgress((prev) => {
         const newProgress = prev + 0.5;
@@ -24,7 +30,6 @@ const LiveTracking = () => {
       });
     }, 3000);
     
-    // Update the current time every minute
     const timeInterval = setInterval(() => {
       setCurrentTime(new Date());
     }, 60000);
@@ -35,6 +40,85 @@ const LiveTracking = () => {
     };
   }, []);
   
+  useEffect(() => {
+    if (mapContainer.current && !map.current) {
+      try {
+        map.current = new mapboxgl.Map({
+          container: mapContainer.current,
+          style: 'mapbox://styles/mapbox/streets-v11',
+          center: [-73.9857, 40.7484],
+          zoom: 14
+        });
+
+        map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+        
+        const caregiverLocation = [-73.9857, 40.7484];
+        const homeLocation = [-73.9837, 40.7454];
+        
+        const el = document.createElement('div');
+        el.className = 'caregiver-marker';
+        el.style.backgroundImage = `url('https://images.unsplash.com/photo-1580489944761-15a19d654956?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3')`;
+        el.style.width = '40px';
+        el.style.height = '40px';
+        el.style.backgroundSize = 'cover';
+        el.style.borderRadius = '50%';
+        el.style.border = '3px solid #3498DB';
+        
+        new mapboxgl.Marker(el)
+          .setLngLat(caregiverLocation)
+          .setPopup(new mapboxgl.Popup({ offset: 25 })
+            .setHTML('<h3>Sarah Johnson</h3><p>Currently with Robert Smith</p>'))
+          .addTo(map.current);
+          
+        const homeEl = document.createElement('div');
+        homeEl.className = 'home-marker';
+        homeEl.style.backgroundImage = 'url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%233498DB\' width=\'36\' height=\'36\'%3E%3Cpath d=\'M12 5.69l5 4.5V18h-2v-6H9v6H7v-7.81l5-4.5M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z\'/%3E%3C/svg%3E")';
+        homeEl.style.width = '36px';
+        homeEl.style.height = '36px';
+        
+        new mapboxgl.Marker(homeEl)
+          .setLngLat(homeLocation)
+          .setPopup(new mapboxgl.Popup({ offset: 25 })
+            .setHTML('<h3>Client\'s Home</h3><p>123 Eldercare Ave</p>'))
+          .addTo(map.current);
+        
+        const bounds = [
+          [Math.min(caregiverLocation[0], homeLocation[0]) - 0.01, Math.min(caregiverLocation[1], homeLocation[1]) - 0.01],
+          [Math.max(caregiverLocation[0], homeLocation[0]) + 0.01, Math.max(caregiverLocation[1], homeLocation[1]) + 0.01]
+        ];
+        
+        map.current.fitBounds(bounds, { padding: 100 });
+        
+        setMapInitialized(true);
+      } catch (error) {
+        console.error("Error initializing map:", error);
+      }
+    }
+    
+    return () => {
+      if (map.current) {
+        map.current.remove();
+        map.current = null;
+      }
+    };
+  }, []);
+  
+  const handleSubmitReview = () => {
+    navigate('/review-booking', { 
+      state: { 
+        caregiver: {
+          name: "Sarah Johnson",
+          image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
+        },
+        booking: {
+          date: currentTime.toLocaleDateString(),
+          time: "2:00 PM",
+          duration: 3,
+        }
+      } 
+    });
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -112,6 +196,18 @@ const LiveTracking = () => {
                       <div className="font-medium">Standard Care</div>
                     </div>
                   </div>
+                  
+                  {careProgress >= 100 && (
+                    <div className="mt-6 flex justify-center">
+                      <Button 
+                        onClick={handleSubmitReview} 
+                        className="bg-eldercare-blue hover:bg-blue-600 flex items-center gap-2"
+                      >
+                        <Star className="h-4 w-4" />
+                        Submit Review for Caregiver
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -140,11 +236,8 @@ const LiveTracking = () => {
                       <span>123 Eldercare Ave, Brooklyn, NY 11201</span>
                     </div>
                     
-                    <div className="h-[300px] bg-gray-100 rounded-lg flex items-center justify-center mb-4">
-                      <div className="text-center text-muted-foreground">
-                        <MapPin className="h-6 w-6 mx-auto mb-2" />
-                        Map view would be integrated here
-                      </div>
+                    <div className="h-[300px] bg-gray-100 rounded-lg overflow-hidden mb-4">
+                      <div ref={mapContainer} className="w-full h-full rounded-lg" />
                     </div>
                     
                     <div className="text-sm text-muted-foreground">

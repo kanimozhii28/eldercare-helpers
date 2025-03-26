@@ -1,180 +1,128 @@
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
-  User, Settings, Heart, Calendar, Clock, MapPin, ChevronRight,
-  Edit, LogOut, CreditCard, Shield, Bell, Star, CheckCircle, ArrowRight
+  User, Settings, LogOut, Heart, Clock, Calendar, 
+  MapPin, ChevronRight, Star, MessageSquare, Edit, ShieldCheck
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
+import { Separator } from '@/components/ui/separator';
 
 const Profile = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState("bookings");
+  const [activeTab, setActiveTab] = useState('bookings');
   
-  // Mock data for user profile
-  const user = {
+  // Mock data for profile
+  const userProfile = {
     name: "John Smith",
     email: "john.smith@example.com",
     phone: "(555) 123-4567",
-    address: "123 Main St, San Francisco, CA 94105",
-    image: null,
-    memberSince: "January 2023"
+    address: "123 Main St, Anytown, CA 12345",
+    image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
   };
   
   // Mock data for bookings
   const bookings = [
     {
-      id: 1,
+      id: "booking1",
       caregiver: {
         name: "Sarah Johnson",
-        image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
-        rating: 4.8
+        image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3"
       },
+      service: "Personal Care",
       date: "May 22, 2023",
       time: "2:00 PM",
       duration: 3,
-      careType: "Standard Care",
-      status: "upcoming",
-      total: "$84.00"
+      status: "completed",
+      reviewed: true
     },
     {
-      id: 2,
+      id: "booking2",
       caregiver: {
         name: "Michael Chen",
-        image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
-        rating: 4.6
+        image: "https://images.unsplash.com/photo-1566492031773-4f4e44671857?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3"
       },
-      date: "May 15, 2023",
+      service: "Companion Care",
+      date: "May 28, 2023",
       time: "10:00 AM",
       duration: 4,
-      careType: "Premium Care",
-      status: "completed",
-      total: "$140.00"
+      status: "upcoming",
+      reviewed: false
     },
     {
-      id: 3,
+      id: "booking3",
       caregiver: {
         name: "Lisa Rodriguez",
-        image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
-        rating: 4.9
+        image: "https://images.unsplash.com/photo-1568602471122-7832951cc4c5?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3"
       },
-      date: "May 10, 2023",
+      service: "Respite Care",
+      date: "Jun 05, 2023",
       time: "1:00 PM",
       duration: 2,
-      careType: "Standard Care",
-      status: "completed",
-      total: "$56.00"
+      status: "active",
+      reviewed: false
     }
   ];
   
   // Mock data for favorite caregivers
-  const favoritesCaregivers = [
+  const favoriteCaregivers = [
     {
-      id: 1,
+      id: "caregiver1",
       name: "Sarah Johnson",
-      title: "Certified Nursing Assistant",
       image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
       rating: 4.8,
-      hourlyRate: 28,
-      specialties: ["Alzheimer's Care", "Medication Management"]
+      specialty: "Alzheimer's Care"
     },
     {
-      id: 2,
+      id: "caregiver2",
       name: "Michael Chen",
-      title: "Home Health Aide",
-      image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
-      rating: 4.6,
-      hourlyRate: 25,
-      specialties: ["Mobility Assistance", "Personal Care"]
+      image: "https://images.unsplash.com/photo-1566492031773-4f4e44671857?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
+      rating: 4.7,
+      specialty: "Physical Therapy"
     },
     {
-      id: 3,
+      id: "caregiver3",
       name: "Lisa Rodriguez",
-      title: "Registered Nurse",
-      image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
+      image: "https://images.unsplash.com/photo-1568602471122-7832951cc4c5?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
       rating: 4.9,
-      hourlyRate: 35,
-      specialties: ["Post-Hospital Care", "Specialized Care"]
+      specialty: "Companion Care"
     }
   ];
   
-  const handleViewCaregiver = (caregiverId) => {
-    navigate(`/caregivers/${caregiverId}`);
-  };
-  
-  const handleBookAgain = (caregiverId) => {
-    navigate(`/caregivers/booking/${caregiverId}`);
-  };
-  
-  const handleRemoveFavorite = (caregiverId) => {
-    toast({
-      title: "Removed from favorites",
-      description: "The caregiver has been removed from your favorites."
-    });
-  };
-  
-  const handleTrackCaregivers = (bookingId) => {
-    // Simulate finding the booking and navigating to tracking
-    const booking = bookings.find(b => b.id === bookingId);
-    if (booking) {
-      navigate('/live-tracking', { state: { caregiver: booking.caregiver, booking: { 
-        date: booking.date,
-        time: booking.time,
-        duration: booking.duration,
-        careType: booking.careType,
-        total: booking.total.replace('$', '')
-      }}});
+  // Mock data for notifications
+  const notifications = [
+    {
+      id: "notif1",
+      message: "Your booking with Sarah Johnson is confirmed for May 22, 2023",
+      time: "2 days ago",
+      read: false
+    },
+    {
+      id: "notif2",
+      message: "Michael Chen sent you a message about your upcoming appointment",
+      time: "3 days ago",
+      read: true
+    },
+    {
+      id: "notif3",
+      message: "You have a new care plan recommendation",
+      time: "5 days ago",
+      read: true
     }
+  ];
+  
+  const handleViewTracking = (bookingId) => {
+    navigate('/live-tracking', { state: { bookingId } });
   };
   
-  const handleReviewBooking = (bookingId) => {
-    // Simulate finding the booking and navigating to review
-    const booking = bookings.find(b => b.id === bookingId);
-    if (booking) {
-      navigate('/review-booking', { state: { caregiver: booking.caregiver, booking: { 
-        date: booking.date,
-        time: booking.time,
-        duration: booking.duration
-      }}});
-    }
-  };
-  
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'upcoming':
-        return 'bg-blue-100 text-blue-800';
-      case 'completed':
-        return 'bg-green-100 text-green-800';
-      case 'canceled':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-  
-  const getStatusBadge = (status) => {
-    return (
-      <Badge className={`${getStatusColor(status)} capitalize`}>
-        {status}
-      </Badge>
-    );
-  };
-  
-  const getInitials = (name) => {
-    return name
-      .split(' ')
-      .map(part => part[0])
-      .join('')
-      .toUpperCase();
+  const handleWriteReview = (booking) => {
+    navigate('/review-booking', { state: { caregiver: booking.caregiver, booking: { date: booking.date, time: booking.time, duration: booking.duration } } });
   };
   
   return (
@@ -183,480 +131,353 @@ const Profile = () => {
       
       <div className="pt-24 pb-10 bg-eldercare-blueGray">
         <div className="container mx-auto px-4">
-          <h1 className="text-3xl font-bold mb-2">My Profile</h1>
-          <p className="text-muted-foreground">Manage your account and bookings</p>
+          <div className="flex flex-col md:flex-row gap-6 items-start">
+            <Avatar className="w-24 h-24 border-4 border-white shadow-md">
+              <AvatarImage src={userProfile.image} alt={userProfile.name} />
+              <AvatarFallback>{userProfile.name.substring(0, 2)}</AvatarFallback>
+            </Avatar>
+            
+            <div className="flex-1">
+              <h1 className="text-2xl md:text-3xl font-bold mb-2">{userProfile.name}</h1>
+              <p className="text-muted-foreground mb-4">{userProfile.email}</p>
+              
+              <div className="flex flex-wrap gap-3">
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Settings className="h-4 w-4" />
+                  Edit Profile
+                </Button>
+                
+                <Button variant="outline" size="sm" className="gap-2">
+                  <LogOut className="h-4 w-4" />
+                  Sign Out
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       
-      <div className="container mx-auto px-4 py-10">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Sidebar / User Profile */}
-          <div className="lg:col-span-1">
-            <Card className="mb-6">
+      <div className="container mx-auto px-4 py-8">
+        <Tabs defaultValue="bookings" className="w-full" onValueChange={setActiveTab}>
+          <TabsList className="grid grid-cols-4 mb-8">
+            <TabsTrigger value="bookings" className="text-sm">Bookings</TabsTrigger>
+            <TabsTrigger value="favorites" className="text-sm">Favorites</TabsTrigger>
+            <TabsTrigger value="notifications" className="text-sm">Notifications</TabsTrigger>
+            <TabsTrigger value="account" className="text-sm">Account</TabsTrigger>
+          </TabsList>
+          
+          {/* Bookings Tab */}
+          <TabsContent value="bookings" className="space-y-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold">Your Bookings</h2>
+              <Button variant="outline" size="sm" onClick={() => navigate('/caregivers')}>
+                Book New Session
+              </Button>
+            </div>
+            
+            {bookings.length === 0 ? (
+              <Card>
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                  <Calendar className="h-12 w-12 text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-medium mb-2">No bookings yet</h3>
+                  <p className="text-muted-foreground text-center mb-6">
+                    You haven't booked any caregiving sessions yet. Find a caregiver to get started.
+                  </p>
+                  <Button onClick={() => navigate('/caregivers')}>
+                    Find a Caregiver
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {bookings.map((booking) => (
+                  <Card key={booking.id}>
+                    <CardContent className="p-6">
+                      <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
+                        <div className="flex gap-4 items-center">
+                          <Avatar className="w-12 h-12 border-2 border-eldercare-lightBlue">
+                            <AvatarImage src={booking.caregiver.image} alt={booking.caregiver.name} />
+                            <AvatarFallback>{booking.caregiver.name.substring(0, 2)}</AvatarFallback>
+                          </Avatar>
+                          
+                          <div>
+                            <h3 className="font-medium">{booking.caregiver.name}</h3>
+                            <p className="text-sm text-muted-foreground">{booking.service}</p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex flex-wrap gap-2 items-center">
+                          {booking.status === 'upcoming' && (
+                            <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200">
+                              Upcoming
+                            </Badge>
+                          )}
+                          
+                          {booking.status === 'active' && (
+                            <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">
+                              Active
+                            </Badge>
+                          )}
+                          
+                          {booking.status === 'completed' && (
+                            <Badge variant="outline" className="bg-gray-50 text-gray-600 border-gray-200">
+                              Completed
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <Separator className="my-4" />
+                      
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+                        <div className="flex gap-2 items-center">
+                          <Calendar className="h-4 w-4 text-eldercare-blue" />
+                          <span className="text-sm">{booking.date}</span>
+                        </div>
+                        
+                        <div className="flex gap-2 items-center">
+                          <Clock className="h-4 w-4 text-eldercare-blue" />
+                          <span className="text-sm">{booking.time} ({booking.duration} hours)</span>
+                        </div>
+                        
+                        <div className="flex gap-2 items-center">
+                          <MapPin className="h-4 w-4 text-eldercare-blue" />
+                          <span className="text-sm">Home Address</span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-2">
+                        {booking.status === 'active' && (
+                          <Button 
+                            onClick={() => handleViewTracking(booking.id)}
+                            className="flex-1 sm:flex-none gap-2"
+                          >
+                            <MapPin className="h-4 w-4" />
+                            Track Caregiver
+                          </Button>
+                        )}
+                        
+                        {booking.status === 'upcoming' && (
+                          <Button 
+                            variant="outline" 
+                            className="flex-1 sm:flex-none gap-2"
+                            onClick={() => handleViewTracking(booking.id)}
+                          >
+                            <Clock className="h-4 w-4" />
+                            View Details
+                          </Button>
+                        )}
+                        
+                        {booking.status === 'completed' && !booking.reviewed && (
+                          <Button 
+                            variant="outline" 
+                            className="flex-1 sm:flex-none gap-2 border-eldercare-blue text-eldercare-blue hover:bg-eldercare-lightBlue/20"
+                            onClick={() => handleWriteReview(booking)}
+                          >
+                            <Star className="h-4 w-4" />
+                            Write Review
+                          </Button>
+                        )}
+                        
+                        {booking.status === 'completed' && booking.reviewed && (
+                          <Button
+                            variant="ghost"
+                            className="flex-1 sm:flex-none gap-2 text-muted-foreground cursor-default"
+                            disabled
+                          >
+                            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                            Reviewed
+                          </Button>
+                        )}
+                        
+                        <Link to={`/caregivers/${booking.caregiver.id}`} className="flex-1 sm:flex-none">
+                          <Button 
+                            variant="outline"
+                            className="w-full gap-2"
+                          >
+                            <User className="h-4 w-4" />
+                            View Profile
+                          </Button>
+                        </Link>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+          
+          {/* Favorites Tab */}
+          <TabsContent value="favorites" className="space-y-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold">Favorite Caregivers</h2>
+              <Button variant="outline" size="sm" onClick={() => navigate('/caregivers')}>
+                Find Caregivers
+              </Button>
+            </div>
+            
+            {favoriteCaregivers.length === 0 ? (
+              <Card>
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                  <Heart className="h-12 w-12 text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-medium mb-2">No favorites yet</h3>
+                  <p className="text-muted-foreground text-center mb-6">
+                    You haven't added any caregivers to your favorites yet. Browse caregivers and add them to your favorites.
+                  </p>
+                  <Button onClick={() => navigate('/caregivers')}>
+                    Browse Caregivers
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {favoriteCaregivers.map((caregiver) => (
+                  <Card key={caregiver.id} className="hover:shadow-md transition-shadow">
+                    <CardContent className="p-6">
+                      <div className="flex items-center gap-4 mb-4">
+                        <Avatar className="w-16 h-16 border-2 border-eldercare-lightBlue">
+                          <AvatarImage src={caregiver.image} alt={caregiver.name} />
+                          <AvatarFallback>{caregiver.name.substring(0, 2)}</AvatarFallback>
+                        </Avatar>
+                        
+                        <div>
+                          <h3 className="font-medium">{caregiver.name}</h3>
+                          <div className="flex items-center">
+                            <Star className="h-4 w-4 text-yellow-400 fill-yellow-400 mr-1" />
+                            <span className="text-sm">{caregiver.rating}</span>
+                          </div>
+                          <p className="text-sm text-muted-foreground">{caregiver.specialty}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex space-x-2">
+                        <Button 
+                          className="flex-1"
+                          onClick={() => navigate(`/caregivers/booking/${caregiver.id}`, { state: { caregiver } })}
+                        >
+                          Book
+                        </Button>
+                        
+                        <Button 
+                          variant="outline" 
+                          className="flex-1"
+                          onClick={() => navigate(`/caregivers/${caregiver.id}`)}
+                        >
+                          Profile
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+          
+          {/* Notifications Tab */}
+          <TabsContent value="notifications" className="space-y-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold">Notifications</h2>
+              <Button variant="outline" size="sm">
+                Mark All as Read
+              </Button>
+            </div>
+            
+            {notifications.length === 0 ? (
+              <Card>
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                  <MessageSquare className="h-12 w-12 text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-medium mb-2">No notifications</h3>
+                  <p className="text-muted-foreground text-center">
+                    You don't have any notifications at the moment. Check back later.
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card>
+                <CardContent className="p-0">
+                  {notifications.map((notification, index) => (
+                    <div key={notification.id} className="flex items-start p-4 hover:bg-muted/30 transition-colors">
+                      <div className={`w-2 h-2 rounded-full mt-2 mr-4 ${notification.read ? 'bg-transparent' : 'bg-eldercare-blue'}`}></div>
+                      <div className="flex-1">
+                        <p className={`${notification.read ? 'text-muted-foreground' : 'font-medium'}`}>
+                          {notification.message}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">{notification.time}</p>
+                      </div>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+          
+          {/* Account Tab */}
+          <TabsContent value="account" className="space-y-6">
+            <h2 className="text-xl font-semibold mb-4">Account Information</h2>
+            
+            <Card>
               <CardContent className="p-6">
-                <div className="flex flex-col items-center mb-4">
-                  <Avatar className="h-20 w-20 mb-4">
-                    <AvatarImage src={user.image} />
-                    <AvatarFallback className="bg-eldercare-blue text-white text-xl">
-                      {getInitials(user.name)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <h2 className="text-xl font-bold">{user.name}</h2>
-                  <p className="text-sm text-muted-foreground">Member since {user.memberSince}</p>
-                </div>
-                
-                <Separator className="my-4" />
-                
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <User className="h-4 w-4 mr-3 text-eldercare-blue" />
-                      <span className="font-medium">Profile</span>
-                    </div>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-1">Full Name</h3>
+                    <p>{userProfile.name}</p>
                   </div>
                   
-                  <div 
-                    className="flex items-center justify-between cursor-pointer"
-                    onClick={() => setActiveTab("bookings")}
-                  >
-                    <div className="flex items-center">
-                      <Calendar className="h-4 w-4 mr-3 text-eldercare-blue" />
-                      <span className="font-medium">My Bookings</span>
-                    </div>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-1">Email Address</h3>
+                    <p>{userProfile.email}</p>
                   </div>
                   
-                  <div 
-                    className="flex items-center justify-between cursor-pointer"
-                    onClick={() => setActiveTab("favorites")}
-                  >
-                    <div className="flex items-center">
-                      <Heart className="h-4 w-4 mr-3 text-eldercare-blue" />
-                      <span className="font-medium">Favorites</span>
-                    </div>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-1">Phone Number</h3>
+                    <p>{userProfile.phone}</p>
                   </div>
                   
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <CreditCard className="h-4 w-4 mr-3 text-eldercare-blue" />
-                      <span className="font-medium">Payment Methods</span>
-                    </div>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <Bell className="h-4 w-4 mr-3 text-eldercare-blue" />
-                      <span className="font-medium">Notifications</span>
-                    </div>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <Settings className="h-4 w-4 mr-3 text-eldercare-blue" />
-                      <span className="font-medium">Account Settings</span>
-                    </div>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-1">Address</h3>
+                    <p>{userProfile.address}</p>
                   </div>
                 </div>
                 
-                <Separator className="my-4" />
-                
-                <Button variant="outline" className="w-full">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Sign Out
+                <Button className="mt-6">
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit Information
                 </Button>
               </CardContent>
             </Card>
             
+            <h2 className="text-xl font-semibold mb-4">Security</h2>
+            
             <Card>
               <CardContent className="p-6">
-                <div className="flex items-center mb-4">
-                  <Shield className="h-5 w-5 mr-2 text-eldercare-blue" />
-                  <h3 className="font-semibold">Need Help?</h3>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="h-5 w-5 text-eldercare-blue" />
+                    <span className="font-medium">Password</span>
+                  </div>
+                  <Button variant="outline" size="sm">
+                    Change Password
+                  </Button>
                 </div>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Our customer support team is available 24/7 to assist you with any questions or concerns.
-                </p>
-                <Button variant="outline" className="w-full">
-                  Contact Support
-                </Button>
+                
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="h-5 w-5 text-eldercare-blue" />
+                    <span className="font-medium">Two-Factor Authentication</span>
+                  </div>
+                  <Button variant="outline" size="sm">
+                    Enable
+                  </Button>
+                </div>
               </CardContent>
             </Card>
-          </div>
-          
-          {/* Main Content */}
-          <div className="lg:col-span-3">
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="mb-6">
-                <TabsTrigger 
-                  value="bookings" 
-                  className="data-[state=active]:bg-eldercare-blue data-[state=active]:text-white"
-                >
-                  My Bookings
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="favorites" 
-                  className="data-[state=active]:bg-eldercare-blue data-[state=active]:text-white"
-                >
-                  Favorites
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="settings" 
-                  className="data-[state=active]:bg-eldercare-blue data-[state=active]:text-white"
-                >
-                  Profile Settings
-                </TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="bookings" className="mt-0">
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-semibold">My Bookings</h2>
-                    <Button 
-                      onClick={() => navigate('/caregivers')}
-                      className="bg-eldercare-blue hover:bg-blue-600"
-                    >
-                      Book New Service
-                    </Button>
-                  </div>
-                  
-                  {bookings.length > 0 ? (
-                    <div className="space-y-4">
-                      {bookings.map((booking) => (
-                        <Card key={booking.id}>
-                          <CardContent className="p-6">
-                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                              <div className="flex items-center gap-4">
-                                <img 
-                                  src={booking.caregiver.image} 
-                                  alt={booking.caregiver.name} 
-                                  className="w-16 h-16 rounded-full object-cover"
-                                />
-                                <div>
-                                  <div className="flex items-center mb-1">
-                                    <h3 className="font-semibold">{booking.caregiver.name}</h3>
-                                    <div className="flex items-center ml-2">
-                                      <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                                      <span className="text-sm ml-1">{booking.caregiver.rating}</span>
-                                    </div>
-                                  </div>
-                                  <div className="text-sm text-muted-foreground mb-1">
-                                    {booking.careType}
-                                  </div>
-                                  <div className="flex items-center text-sm text-muted-foreground">
-                                    <Calendar className="h-3 w-3 mr-1" />
-                                    <span className="mr-3">{booking.date}</span>
-                                    <Clock className="h-3 w-3 mr-1" />
-                                    <span>{booking.time} ({booking.duration} hours)</span>
-                                  </div>
-                                </div>
-                              </div>
-                              
-                              <div className="flex flex-col items-end">
-                                {getStatusBadge(booking.status)}
-                                <div className="font-bold mt-2">{booking.total}</div>
-                                <div className="flex gap-2 mt-3">
-                                  {booking.status === 'upcoming' && (
-                                    <Button 
-                                      size="sm" 
-                                      className="bg-eldercare-blue hover:bg-blue-600"
-                                      onClick={() => handleTrackCaregivers(booking.id)}
-                                    >
-                                      Track
-                                    </Button>
-                                  )}
-                                  
-                                  {booking.status === 'completed' && (
-                                    <Button 
-                                      size="sm" 
-                                      onClick={() => handleReviewBooking(booking.id)}
-                                      variant="outline"
-                                    >
-                                      Leave Review
-                                    </Button>
-                                  )}
-                                  
-                                  <Button 
-                                    size="sm" 
-                                    variant={booking.status === 'completed' ? "default" : "outline"}
-                                    className={booking.status === 'completed' ? "bg-eldercare-blue hover:bg-blue-600" : ""}
-                                    onClick={() => handleBookAgain(booking.caregiver.id)}
-                                  >
-                                    Book Again
-                                  </Button>
-                                </div>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  ) : (
-                    <Card>
-                      <CardContent className="p-6 text-center">
-                        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-eldercare-lightBlue flex items-center justify-center">
-                          <Calendar className="w-8 h-8 text-eldercare-blue" />
-                        </div>
-                        <h3 className="text-lg font-semibold mb-2">No bookings yet</h3>
-                        <p className="text-muted-foreground mb-4">
-                          You haven't made any bookings yet. Start by browsing our available caregivers.
-                        </p>
-                        <Button 
-                          onClick={() => navigate('/caregivers')}
-                          className="bg-eldercare-blue hover:bg-blue-600"
-                        >
-                          Find Caregivers
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  )}
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="favorites" className="mt-0">
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-semibold">Favorite Caregivers</h2>
-                    <Button 
-                      onClick={() => navigate('/caregivers')}
-                      variant="outline"
-                    >
-                      Browse Caregivers
-                    </Button>
-                  </div>
-                  
-                  {favoritesCaregivers.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {favoritesCaregivers.map((caregiver) => (
-                        <Card key={caregiver.id} className="hover:border-eldercare-blue transition-colors">
-                          <CardContent className="p-6">
-                            <div className="flex items-start gap-4">
-                              <img 
-                                src={caregiver.image} 
-                                alt={caregiver.name} 
-                                className="w-20 h-20 rounded-full object-cover"
-                              />
-                              <div className="flex-1">
-                                <div className="flex items-center mb-1">
-                                  <h3 className="font-semibold">{caregiver.name}</h3>
-                                  <div className="flex items-center ml-2">
-                                    <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                                    <span className="text-sm ml-1">{caregiver.rating}</span>
-                                  </div>
-                                </div>
-                                <p className="text-sm text-muted-foreground mb-1">
-                                  {caregiver.title}
-                                </p>
-                                <p className="text-sm font-medium mb-2">
-                                  ${caregiver.hourlyRate}/hour
-                                </p>
-                                <div className="flex flex-wrap gap-2 mb-4">
-                                  {caregiver.specialties.map((specialty, index) => (
-                                    <Badge 
-                                      key={index} 
-                                      variant="outline"
-                                      className="text-xs bg-eldercare-warmGray/10"
-                                    >
-                                      {specialty}
-                                    </Badge>
-                                  ))}
-                                </div>
-                                <div className="flex gap-2">
-                                  <Button 
-                                    size="sm" 
-                                    className="bg-eldercare-blue hover:bg-blue-600"
-                                    onClick={() => handleBookAgain(caregiver.id)}
-                                  >
-                                    Book
-                                  </Button>
-                                  <Button 
-                                    size="sm" 
-                                    variant="outline"
-                                    onClick={() => handleViewCaregiver(caregiver.id)}
-                                  >
-                                    View Profile
-                                  </Button>
-                                  <Button 
-                                    size="sm" 
-                                    variant="ghost"
-                                    className="p-0 h-8 w-8"
-                                    onClick={() => handleRemoveFavorite(caregiver.id)}
-                                  >
-                                    <Heart className="h-4 w-4 text-pink-500 fill-pink-500" />
-                                  </Button>
-                                </div>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  ) : (
-                    <Card>
-                      <CardContent className="p-6 text-center">
-                        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-eldercare-lightBlue flex items-center justify-center">
-                          <Heart className="w-8 h-8 text-eldercare-blue" />
-                        </div>
-                        <h3 className="text-lg font-semibold mb-2">No favorites yet</h3>
-                        <p className="text-muted-foreground mb-4">
-                          You haven't added any caregivers to your favorites list yet.
-                        </p>
-                        <Button 
-                          onClick={() => navigate('/caregivers')}
-                          className="bg-eldercare-blue hover:bg-blue-600"
-                        >
-                          Browse Caregivers
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  )}
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="settings" className="mt-0">
-                <Card>
-                  <CardContent className="p-6">
-                    <h2 className="text-xl font-semibold mb-6">Profile Settings</h2>
-                    
-                    <div className="space-y-6">
-                      <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
-                        <Avatar className="h-20 w-20">
-                          <AvatarImage src={user.image} />
-                          <AvatarFallback className="bg-eldercare-blue text-white text-xl">
-                            {getInitials(user.name)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <Button size="sm" variant="outline">
-                            <Edit className="mr-2 h-4 w-4" />
-                            Change Photo
-                          </Button>
-                          <p className="text-xs text-muted-foreground mt-2">
-                            JPG, GIF or PNG. Max size 1MB.
-                          </p>
-                        </div>
-                      </div>
-                      
-                      <Separator />
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                          <label className="text-sm font-medium mb-1 block">Full Name</label>
-                          <div className="flex items-center justify-between border rounded-md p-2">
-                            <span>{user.name}</span>
-                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                        
-                        <div>
-                          <label className="text-sm font-medium mb-1 block">Email Address</label>
-                          <div className="flex items-center justify-between border rounded-md p-2">
-                            <span>{user.email}</span>
-                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                        
-                        <div>
-                          <label className="text-sm font-medium mb-1 block">Phone Number</label>
-                          <div className="flex items-center justify-between border rounded-md p-2">
-                            <span>{user.phone}</span>
-                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                        
-                        <div>
-                          <label className="text-sm font-medium mb-1 block">Address</label>
-                          <div className="flex items-center justify-between border rounded-md p-2">
-                            <span>{user.address}</span>
-                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <Separator />
-                      
-                      <div>
-                        <h3 className="font-medium mb-4">Password & Security</h3>
-                        <Button variant="outline">
-                          Change Password
-                        </Button>
-                      </div>
-                      
-                      <Separator />
-                      
-                      <div>
-                        <h3 className="font-medium mb-4">Notification Preferences</h3>
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <div className="font-medium">Email Notifications</div>
-                              <div className="text-sm text-muted-foreground">
-                                Receive booking updates and promotions via email
-                              </div>
-                            </div>
-                            <div className="w-12 h-6 rounded-full bg-eldercare-blue relative cursor-pointer">
-                              <div className="absolute right-1 top-1 bg-white rounded-full h-4 w-4"></div>
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <div className="font-medium">SMS Notifications</div>
-                              <div className="text-sm text-muted-foreground">
-                                Receive booking updates and alerts via text message
-                              </div>
-                            </div>
-                            <div className="w-12 h-6 rounded-full bg-eldercare-blue relative cursor-pointer">
-                              <div className="absolute right-1 top-1 bg-white rounded-full h-4 w-4"></div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <Button className="bg-eldercare-blue hover:bg-blue-600">
-                        Save Changes
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
-          </div>
-        </div>
+          </TabsContent>
+        </Tabs>
       </div>
       
       <Footer />
     </div>
   );
 };
-
-// Define Shield component since it's not imported from lucide-react
-const Shield = ({ className = "", ...props }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-    {...props}
-  >
-    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-  </svg>
-);
 
 export default Profile;

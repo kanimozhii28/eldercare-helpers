@@ -17,6 +17,23 @@ const VoiceAssistant = () => {
   // Create a recognition object if the browser supports it
   const [recognition, setRecognition] = useState(null);
 
+  // Define caregiver categories
+  const caregiverCategories = {
+    'cooking': 'Cooking and Meal Preparation',
+    'personal': 'Personal Care',
+    'medical': 'Medical Care',
+    'companion': 'Companion Care',
+    'alzheimer': 'Alzheimer\'s and Dementia Care',
+    'housekeeping': 'Housekeeping and Cleaning',
+    'mobility': 'Mobility Assistance',
+    'overnight': 'Overnight Care',
+    'respite': 'Respite Care',
+    'medication': 'Medication Management',
+    'transportation': 'Transportation and Errands',
+    'therapy': 'Physical Therapy Support',
+    'transitional': 'Transitional Care'
+  };
+
   useEffect(() => {
     // Initialize speech recognition if supported by the browser
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
@@ -92,6 +109,36 @@ const VoiceAssistant = () => {
     }
   };
 
+  const findCategoryMatch = (query) => {
+    query = query.toLowerCase();
+    
+    // Check for direct category mentions
+    for (const [key, value] of Object.entries(caregiverCategories)) {
+      if (query.includes(key.toLowerCase())) {
+        return { key, value };
+      }
+      
+      // Also check for plural forms or variations
+      if (key === 'cooking' && (query.includes('cook') || query.includes('chef'))) {
+        return { key, value };
+      }
+      if (key === 'medical' && (query.includes('nurse') || query.includes('doctor') || query.includes('health'))) {
+        return { key, value };
+      }
+      if (key === 'mobility' && (query.includes('movement') || query.includes('walking'))) {
+        return { key, value };
+      }
+      if (key === 'housekeeping' && (query.includes('cleaning') || query.includes('cleaner') || query.includes('house'))) {
+        return { key, value };
+      }
+      if (key === 'transportation' && (query.includes('drive') || query.includes('car') || query.includes('errands'))) {
+        return { key, value };
+      }
+    }
+    
+    return null;
+  };
+
   const handleQueryResponse = (query) => {
     // Add user's query to chat history
     setChatHistory(prev => [...prev, { type: 'user', text: query }]);
@@ -102,149 +149,101 @@ const VoiceAssistant = () => {
     setTimeout(() => {
       setIsProcessing(false);
       
-      // Pattern matching for common eldercare queries with better routing
       let botResponse = "";
+      let actions = [];
       
-      if (query.toLowerCase().includes("caregiver") || query.toLowerCase().includes("care giver")) {
+      // Check for category matches first
+      const categoryMatch = findCategoryMatch(query);
+      if (categoryMatch) {
+        botResponse = `I can help you find caregivers specializing in ${categoryMatch.value}. Would you like to see caregivers with this expertise?`;
+        
+        actions = [
+          { 
+            label: `View ${categoryMatch.value} Caregivers`, 
+            path: `/caregivers?category=${encodeURIComponent(categoryMatch.key)}` 
+          },
+          { label: 'View All Caregivers', path: '/caregivers' }
+        ];
+      }
+      // Pattern matching for other common eldercare queries
+      else if (query.toLowerCase().includes("caregiver") || query.toLowerCase().includes("care giver")) {
         botResponse = "I can help you find a caregiver. Would you like to see available caregivers or learn about our caregiving services?";
         
-        // Add suggestion to navigate to caregivers page
-        setChatHistory(prev => [
-          ...prev, 
-          { 
-            type: 'assistant', 
-            text: botResponse,
-            actions: [
-              { label: 'Find Caregivers', path: '/caregivers' },
-              { label: 'Learn About Services', path: '/services' }
-            ]
-          }
-        ]);
+        actions = [
+          { label: 'Find Caregivers', path: '/caregivers' },
+          { label: 'Learn About Services', path: '/services' }
+        ];
       } else if (query.toLowerCase().includes("service") || query.toLowerCase().includes("services")) {
         botResponse = "We offer a variety of eldercare services including personal care, companion care, specialized care, and home health care. Would you like to learn more about any specific service?";
         
-        setChatHistory(prev => [
-          ...prev, 
-          { 
-            type: 'assistant', 
-            text: botResponse,
-            actions: [
-              { label: 'View All Services', path: '/services' },
-              { label: 'View Care Plans', path: '/care-plans' }
-            ]
-          }
-        ]);
+        actions = [
+          { label: 'View All Services', path: '/services' },
+          { label: 'View Care Plans', path: '/care-plans' }
+        ];
       } else if (query.toLowerCase().includes("book") || query.toLowerCase().includes("booking") || query.toLowerCase().includes("appointment")) {
         botResponse = "I can help you book a caregiver. You can view available caregivers and schedule an appointment.";
         
-        setChatHistory(prev => [
-          ...prev, 
-          { 
-            type: 'assistant', 
-            text: botResponse,
-            actions: [
-              { label: 'Book a Caregiver', path: '/caregivers' }
-            ]
-          }
-        ]);
+        actions = [
+          { label: 'Book a Caregiver', path: '/caregivers' }
+        ];
       } else if (query.toLowerCase().includes("login") || query.toLowerCase().includes("account") || query.toLowerCase().includes("sign in")) {
         botResponse = "You can log in to your account to manage your bookings, view your profile, and more.";
         
-        setChatHistory(prev => [
-          ...prev, 
-          { 
-            type: 'assistant', 
-            text: botResponse,
-            actions: [
-              { label: 'Login', path: '/login' },
-              { label: 'View Profile', path: '/profile' }
-            ]
-          }
-        ]);
+        actions = [
+          { label: 'Login', path: '/login' },
+          { label: 'View Profile', path: '/profile' }
+        ];
       } else if (query.toLowerCase().includes("track") || query.toLowerCase().includes("tracking") || query.toLowerCase().includes("where")) {
         botResponse = "You can track your caregiver's location in real-time during active bookings.";
         
-        setChatHistory(prev => [
-          ...prev, 
-          { 
-            type: 'assistant', 
-            text: botResponse,
-            actions: [
-              { label: 'Live Tracking', path: '/live-tracking' }
-            ]
-          }
-        ]);
+        actions = [
+          { label: 'Live Tracking', path: '/live-tracking' }
+        ];
       } else if (query.toLowerCase().includes("care plan") || query.toLowerCase().includes("care plans") || query.toLowerCase().includes("plan")) {
         botResponse = "We offer standard and customized care plans to meet your specific needs.";
         
-        setChatHistory(prev => [
-          ...prev, 
-          { 
-            type: 'assistant', 
-            text: botResponse,
-            actions: [
-              { label: 'View Care Plans', path: '/care-plans' }
-            ]
-          }
-        ]);
+        actions = [
+          { label: 'View Care Plans', path: '/care-plans' }
+        ];
       } else if (query.toLowerCase().includes("payment") || query.toLowerCase().includes("pay") || query.toLowerCase().includes("cost")) {
         botResponse = "You can make secure payments for your caregiver services through our platform.";
         
-        setChatHistory(prev => [
-          ...prev, 
-          { 
-            type: 'assistant', 
-            text: botResponse,
-            actions: [
-              { label: 'Go to Payment', path: '/payment' }
-            ]
-          }
-        ]);
+        actions = [
+          { label: 'Go to Payment', path: '/payment' }
+        ];
       } else if (query.toLowerCase().includes("profile") || query.toLowerCase().includes("my account") || query.toLowerCase().includes("my bookings")) {
         botResponse = "You can view your profile to see your personal information, bookings, and favorite caregivers.";
         
-        setChatHistory(prev => [
-          ...prev, 
-          { 
-            type: 'assistant', 
-            text: botResponse,
-            actions: [
-              { label: 'View Profile', path: '/profile' }
-            ]
-          }
-        ]);
+        actions = [
+          { label: 'View Profile', path: '/profile' }
+        ];
       } else if (query.toLowerCase().includes("review") || query.toLowerCase().includes("feedback") || query.toLowerCase().includes("rate")) {
         botResponse = "You can review and rate your caregivers after your service is complete.";
         
-        setChatHistory(prev => [
-          ...prev, 
-          { 
-            type: 'assistant', 
-            text: botResponse,
-            actions: [
-              { label: 'Write a Review', path: '/review-booking' }
-            ]
-          }
-        ]);
+        actions = [
+          { label: 'Write a Review', path: '/review-booking' }
+        ];
       } else {
         botResponse = "I'm here to help with questions about our eldercare services, caregivers, bookings, and more. How can I assist you today?";
         
-        setChatHistory(prev => [
-          ...prev, 
-          { 
-            type: 'assistant', 
-            text: botResponse,
-            actions: [
-              { label: 'Browse Services', path: '/services' },
-              { label: 'Find Caregivers', path: '/caregivers' },
-              { label: 'How It Works', path: '/how-it-works' }
-            ]
-          }
-        ]);
+        actions = [
+          { label: 'Browse Services', path: '/services' },
+          { label: 'Find Caregivers', path: '/caregivers' },
+          { label: 'How It Works', path: '/how-it-works' }
+        ];
       }
       
+      setChatHistory(prev => [
+        ...prev, 
+        { 
+          type: 'assistant', 
+          text: botResponse,
+          actions: actions
+        }
+      ]);
+      
       setResponse(botResponse);
-    }, 1500);
+    }, 1000);
   };
 
   const handleTextSubmit = (e) => {
@@ -358,7 +357,7 @@ const VoiceAssistant = () => {
                   How can I help you today?
                 </p>
                 <p className="text-xs text-muted-foreground mb-6">
-                  Try saying: "Find a caregiver for my mother" or "What services do you offer?"
+                  Try saying: "Find a cooking caregiver" or "I need help with medical care"
                 </p>
               </div>
             )}

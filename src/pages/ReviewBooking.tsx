@@ -56,8 +56,8 @@ const ReviewBooking = () => {
         description: "Thank you for your feedback!",
       });
       
-      // Redirect to profile page
-      navigate('/profile');
+      // Redirect to home page instead of profile
+      navigate('/');
     }, 1500);
   };
   
