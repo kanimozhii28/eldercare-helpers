@@ -20,35 +20,39 @@ const VoiceAssistant = () => {
   useEffect(() => {
     // Initialize speech recognition if supported by the browser
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      const recognitionInstance = new SpeechRecognition();
+      // Use the appropriate constructor based on browser support
+      const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
       
-      recognitionInstance.continuous = false;
-      recognitionInstance.interimResults = false;
-      recognitionInstance.lang = 'en-US';
-      
-      recognitionInstance.onresult = (event) => {
-        const current = event.resultIndex;
-        const userTranscript = event.results[current][0].transcript;
-        setTranscript(userTranscript);
-        handleQueryResponse(userTranscript);
-      };
-      
-      recognitionInstance.onerror = (event) => {
-        console.error('Speech recognition error', event.error);
-        setIsListening(false);
-        toast({
-          title: "Speech recognition error",
-          description: "Please try again or type your question.",
-          variant: "destructive"
-        });
-      };
-      
-      recognitionInstance.onend = () => {
-        setIsListening(false);
-      };
-      
-      setRecognition(recognitionInstance);
+      if (SpeechRecognitionAPI) {
+        const recognitionInstance = new SpeechRecognitionAPI();
+        
+        recognitionInstance.continuous = false;
+        recognitionInstance.interimResults = false;
+        recognitionInstance.lang = 'en-US';
+        
+        recognitionInstance.onresult = (event) => {
+          const current = event.resultIndex;
+          const userTranscript = event.results[current][0].transcript;
+          setTranscript(userTranscript);
+          handleQueryResponse(userTranscript);
+        };
+        
+        recognitionInstance.onerror = (event) => {
+          console.error('Speech recognition error', event.error);
+          setIsListening(false);
+          toast({
+            title: "Speech recognition error",
+            description: "Please try again or type your question.",
+            variant: "destructive"
+          });
+        };
+        
+        recognitionInstance.onend = () => {
+          setIsListening(false);
+        };
+        
+        setRecognition(recognitionInstance);
+      }
     }
   }, [toast]);
 
@@ -98,7 +102,7 @@ const VoiceAssistant = () => {
     setTimeout(() => {
       setIsProcessing(false);
       
-      // Simple pattern matching for demonstration
+      // Pattern matching for common eldercare queries with better routing
       let botResponse = "";
       
       if (query.toLowerCase().includes("caregiver") || query.toLowerCase().includes("care giver")) {
@@ -143,7 +147,7 @@ const VoiceAssistant = () => {
             ]
           }
         ]);
-      } else if (query.toLowerCase().includes("login") || query.toLowerCase().includes("account")) {
+      } else if (query.toLowerCase().includes("login") || query.toLowerCase().includes("account") || query.toLowerCase().includes("sign in")) {
         botResponse = "You can log in to your account to manage your bookings, view your profile, and more.";
         
         setChatHistory(prev => [
@@ -157,7 +161,7 @@ const VoiceAssistant = () => {
             ]
           }
         ]);
-      } else if (query.toLowerCase().includes("track") || query.toLowerCase().includes("tracking")) {
+      } else if (query.toLowerCase().includes("track") || query.toLowerCase().includes("tracking") || query.toLowerCase().includes("where")) {
         botResponse = "You can track your caregiver's location in real-time during active bookings.";
         
         setChatHistory(prev => [
@@ -170,7 +174,7 @@ const VoiceAssistant = () => {
             ]
           }
         ]);
-      } else if (query.toLowerCase().includes("care plan") || query.toLowerCase().includes("care plans")) {
+      } else if (query.toLowerCase().includes("care plan") || query.toLowerCase().includes("care plans") || query.toLowerCase().includes("plan")) {
         botResponse = "We offer standard and customized care plans to meet your specific needs.";
         
         setChatHistory(prev => [
@@ -180,6 +184,45 @@ const VoiceAssistant = () => {
             text: botResponse,
             actions: [
               { label: 'View Care Plans', path: '/care-plans' }
+            ]
+          }
+        ]);
+      } else if (query.toLowerCase().includes("payment") || query.toLowerCase().includes("pay") || query.toLowerCase().includes("cost")) {
+        botResponse = "You can make secure payments for your caregiver services through our platform.";
+        
+        setChatHistory(prev => [
+          ...prev, 
+          { 
+            type: 'assistant', 
+            text: botResponse,
+            actions: [
+              { label: 'Go to Payment', path: '/payment' }
+            ]
+          }
+        ]);
+      } else if (query.toLowerCase().includes("profile") || query.toLowerCase().includes("my account") || query.toLowerCase().includes("my bookings")) {
+        botResponse = "You can view your profile to see your personal information, bookings, and favorite caregivers.";
+        
+        setChatHistory(prev => [
+          ...prev, 
+          { 
+            type: 'assistant', 
+            text: botResponse,
+            actions: [
+              { label: 'View Profile', path: '/profile' }
+            ]
+          }
+        ]);
+      } else if (query.toLowerCase().includes("review") || query.toLowerCase().includes("feedback") || query.toLowerCase().includes("rate")) {
+        botResponse = "You can review and rate your caregivers after your service is complete.";
+        
+        setChatHistory(prev => [
+          ...prev, 
+          { 
+            type: 'assistant', 
+            text: botResponse,
+            actions: [
+              { label: 'Write a Review', path: '/review-booking' }
             ]
           }
         ]);
