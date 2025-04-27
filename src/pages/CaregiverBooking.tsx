@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, Clock, DollarSign, MapPin, CalendarCheck, User, Home } from 'lucide-react';
@@ -18,7 +17,6 @@ import { Badge } from '@/components/ui/badge';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { toast } from '@/hooks/use-toast';
 
-// Mock data for caregivers
 const caregivers = {
   "1": {
     id: 1,
@@ -30,7 +28,7 @@ const caregivers = {
     distance: "2.3 miles away",
     experience: "8 years",
     specialties: ["Dementia Care", "Meal Preparation", "Medication Management"],
-    hourlyRate: 28,
+    hourlyRate: 2800,
     availability: "Weekdays, Evenings",
     bio: "I've been a dedicated caregiver for over 8 years, specializing in dementia care and medication management. My approach centers on creating a safe, engaging environment where seniors can maintain their dignity and enjoy a high quality of life. I believe in fostering genuine connections with those I care for, adapting to their unique needs and preferences.",
     education: "Certified Nursing Assistant (CNA), Dementia Care Specialist",
@@ -47,7 +45,7 @@ const caregivers = {
     distance: "3.8 miles away",
     experience: "5 years",
     specialties: ["Alzheimer's Care", "Personal Care", "Companionship"],
-    hourlyRate: 25,
+    hourlyRate: 2500,
     availability: "Weekends, Nights",
     bio: "With 5 years of experience in elder care, I specialize in Alzheimer's care and personal assistance. I'm committed to providing compassionate, patient-centered care that enhances the quality of life for seniors. I enjoy building meaningful relationships with my clients and their families, offering both professional support and genuine companionship.",
     education: "Home Health Aide Certification, Alzheimer's Care Training",
@@ -64,7 +62,7 @@ const caregivers = {
     distance: "1.5 miles away",
     experience: "10 years",
     specialties: ["Parkinson's Care", "Physical Therapy Support", "Health Monitoring"],
-    hourlyRate: 32,
+    hourlyRate: 3200,
     availability: "Full-time",
     bio: "I bring a decade of experience in elder care, with specialized training in Parkinson's care and physical therapy support. My goal is to help seniors maintain their independence and dignity through personalized care plans that address their specific needs. I'm dedicated to providing not just physical assistance, but also emotional support and companionship.",
     education: "Licensed Practical Nurse (LPN), Physical Therapy Assistant Certification",
@@ -81,7 +79,7 @@ const caregivers = {
     distance: "5.2 miles away",
     experience: "4 years",
     specialties: ["Post-Hospital Care", "Mobility Assistance", "Medication Management"],
-    hourlyRate: 26,
+    hourlyRate: 2600,
     availability: "Mornings, Afternoons",
     bio: "Over my 4 years as a caregiver, I've developed expertise in post-hospital care and mobility assistance. I'm passionate about helping seniors recover and maintain their independence through personalized support. I take a holistic approach to caregiving, focusing on both physical needs and emotional well-being to ensure a positive, dignified aging experience.",
     education: "Certified Nursing Assistant (CNA), Post-Acute Care Certification",
@@ -132,8 +130,6 @@ const CaregiverBooking = () => {
       return;
     }
     
-    // In a real app, we would submit the booking to an API
-    // For this demo, we'll navigate to the payment page
     navigate("/payment", { 
       state: { 
         caregiver,
@@ -153,7 +149,6 @@ const CaregiverBooking = () => {
     const hours = parseInt(duration);
     let multiplier = 1;
     
-    // Apply multiplier based on care type
     if (careType === "premium") {
       multiplier = 1.25;
     } else if (careType === "basic") {
@@ -356,14 +351,14 @@ const CaregiverBooking = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Rate:</span>
-                  <span className="font-medium">${caregiver.hourlyRate}/hour</span>
+                  <span className="font-medium">₹{caregiver.hourlyRate}/hour</span>
                 </div>
                 
                 <Separator className="my-2" />
                 
                 <div className="flex justify-between font-bold">
                   <span>Total:</span>
-                  <span className="text-eldercare-blue">${calculateTotal()}</span>
+                  <span className="text-eldercare-blue">₹{calculateTotal()}</span>
                 </div>
               </div>
               
