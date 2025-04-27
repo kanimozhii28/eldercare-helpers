@@ -1,24 +1,25 @@
-
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { MapPin, Clock, Phone, Navigation, Star } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
-// Mock API key - in a real app, this would be an environment variable
-mapboxgl.accessToken = 'pk.eyJ1IjoiZWxkZXJjYXJlIiwiYSI6ImNsMnE4cTJycTBhcnkzanBkdXhheXZxY3QifQ.iy4wqjkhCT9ZjMR-NUg2-Q';
-
 const LiveTracking = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const mapContainer = useRef(null);
   const map = useRef(null);
-  const [caregiverLocation, setCaregiverLocation] = useState<[number, number]>([-74.006, 40.7128]); // NYC coordinates
-  const [userLocation, setUserLocation] = useState<[number, number]>([-74.0105, 40.7152]); // Nearby location
+  const [mapboxToken, setMapboxToken] = useState('');
+  const [caregiverLocation, setCaregiverLocation] = useState([-74.006, 40.7128]);
+  const [userLocation, setUserLocation] = useState([-74.0105, 40.7152]);
   const [estimatedTime, setEstimatedTime] = useState("12 minutes");
+  const [mapInitialized, setMapInitialized] = useState(false);
   const [caregiverData, setCaregiverData] = useState({
     name: "Sarah Johnson",
     phone: "555-123-4567",
@@ -29,91 +30,76 @@ const LiveTracking = () => {
     vehicle: "Toyota Prius, White"
   });
 
-  // Initialize map when component mounts
   useEffect(() => {
-    if (map.current) return; // initialize map only once
+    if (!mapboxToken || mapInitialized || !mapContainer.current) return;
     
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/streets-v11',
-      center: caregiverLocation,
-      zoom: 13
-    });
+    try {
+      mapboxgl.accessToken = mapboxToken;
+      
+      map.current = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: 'mapbox://styles/mapbox/streets-v11',
+        center: caregiverLocation,
+        zoom: 13
+      });
 
-    // Add navigation control (zoom buttons)
-    map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
-    
-    // Add markers after map loads
-    map.current.on('load', () => {
-      // Add caregiver marker
-      new mapboxgl.Marker({ color: "#3b82f6" })
-        .setLngLat(caregiverLocation)
-        .setPopup(new mapboxgl.Popup().setHTML(`<h3>${caregiverData.name}</h3><p>On the way</p>`))
-        .addTo(map.current);
+      // Add navigation control
+      map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
       
-      // Add user location marker
-      new mapboxgl.Marker({ color: "#10b981" })
-        .setLngLat(userLocation)
-        .setPopup(new mapboxgl.Popup().setHTML("<h3>Your Location</h3>"))
-        .addTo(map.current);
-      
-      // Add a line between the two points
-      map.current.addSource('route', {
-        'type': 'geojson',
-        'data': {
-          'type': 'Feature',
-          'properties': {},
-          'geometry': {
-            'type': 'LineString',
-            'coordinates': [
-              caregiverLocation,
-              userLocation
-            ]
+      // Add markers and route after map loads
+      map.current.on('load', () => {
+        // Add caregiver marker
+        new mapboxgl.Marker({ color: "#3b82f6" })
+          .setLngLat(caregiverLocation)
+          .setPopup(new mapboxgl.Popup().setHTML(`<h3>${caregiverData.name}</h3><p>On the way</p>`))
+          .addTo(map.current);
+        
+        // Add user location marker
+        new mapboxgl.Marker({ color: "#10b981" })
+          .setLngLat(userLocation)
+          .setPopup(new mapboxgl.Popup().setHTML("<h3>Your Location</h3>"))
+          .addTo(map.current);
+        
+        // Add route line
+        map.current.addSource('route', {
+          'type': 'geojson',
+          'data': {
+            'type': 'Feature',
+            'properties': {},
+            'geometry': {
+              'type': 'LineString',
+              'coordinates': [caregiverLocation, userLocation]
+            }
           }
-        }
+        });
+        
+        map.current.addLayer({
+          'id': 'route',
+          'type': 'line',
+          'source': 'route',
+          'layout': {
+            'line-join': 'round',
+            'line-cap': 'round'
+          },
+          'paint': {
+            'line-color': '#3b82f6',
+            'line-width': 4,
+            'line-dasharray': [2, 1]
+          }
+        });
       });
       
-      map.current.addLayer({
-        'id': 'route',
-        'type': 'line',
-        'source': 'route',
-        'layout': {
-          'line-join': 'round',
-          'line-cap': 'round'
-        },
-        'paint': {
-          'line-color': '#3b82f6',
-          'line-width': 4,
-          'line-dasharray': [2, 1]
-        }
+      setMapInitialized(true);
+    } catch (error) {
+      console.error('Map initialization error:', error);
+      toast({
+        title: "Map Error",
+        description: "There was an error loading the map. Please check your Mapbox token.",
+        variant: "destructive"
       });
-    });
-    
-    // Simulate movement
-    const interval = setInterval(() => {
-      // Move caregiver closer to destination
-      const newLat = caregiverLocation[1] + (userLocation[1] - caregiverLocation[1]) * 0.05;
-      const newLng = caregiverLocation[0] + (userLocation[0] - caregiverLocation[0]) * 0.05;
-      
-      // Update caregiver location
-      const newLocation: [number, number] = [newLng, newLat];
-      setCaregiverLocation(newLocation);
-      
-      // Update time estimate (decrease time as caregiver gets closer)
-      const currentEstimate = parseInt(estimatedTime.split(' ')[0]);
-      if (currentEstimate > 1) {
-        setEstimatedTime(`${currentEstimate - 1} minutes`);
-      } else {
-        setEstimatedTime('Less than a minute');
-        // When caregiver arrives, clear interval
-        clearInterval(interval);
-      }
-    }, 5000);
-    
-    return () => clearInterval(interval);
-  }, [caregiverLocation, userLocation, estimatedTime, caregiverData.name]);
-  
-  // Update map when caregiver location changes
+    }
+  }, [mapboxToken, mapInitialized, caregiverData.name]);
+
   useEffect(() => {
     if (!map.current) return;
     
@@ -147,6 +133,36 @@ const LiveTracking = () => {
   const handleCompleteService = () => {
     navigate('/review-booking');
   };
+
+  if (!mapInitialized) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <div className="container mx-auto px-4 py-10 max-w-2xl">
+          <Card>
+            <CardContent className="p-6">
+              <h2 className="text-lg font-semibold mb-4">Map Configuration Required</h2>
+              <p className="mb-4 text-muted-foreground">Please enter your Mapbox public token to initialize the map:</p>
+              <Input
+                type="text"
+                placeholder="Enter your Mapbox token"
+                value={mapboxToken}
+                onChange={(e) => setMapboxToken(e.target.value)}
+                className="mb-4"
+              />
+              <p className="text-sm text-muted-foreground mb-4">
+                You can get your public token from{" "}
+                <a href="https://www.mapbox.com/" target="_blank" rel="noopener noreferrer" className="text-eldercare-blue hover:underline">
+                  Mapbox.com
+                </a>
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
