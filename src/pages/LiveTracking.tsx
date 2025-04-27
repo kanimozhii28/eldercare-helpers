@@ -10,14 +10,16 @@ import { useToast } from '@/hooks/use-toast';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
+type LngLat = [number, number];
+
 const LiveTracking = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const mapContainer = useRef(null);
   const map = useRef(null);
   const [mapboxToken, setMapboxToken] = useState('');
-  const [caregiverLocation, setCaregiverLocation] = useState([-74.006, 40.7128]);
-  const [userLocation, setUserLocation] = useState([-74.0105, 40.7152]);
+  const [caregiverLocation, setCaregiverLocation] = useState<LngLat>([-74.006, 40.7128]);
+  const [userLocation, setUserLocation] = useState<LngLat>([-74.0105, 40.7152]);
   const [estimatedTime, setEstimatedTime] = useState("12 minutes");
   const [mapInitialized, setMapInitialized] = useState(false);
   const [caregiverData, setCaregiverData] = useState({
@@ -43,24 +45,19 @@ const LiveTracking = () => {
         zoom: 13
       });
 
-      // Add navigation control
       map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
       
-      // Add markers and route after map loads
       map.current.on('load', () => {
-        // Add caregiver marker
         new mapboxgl.Marker({ color: "#3b82f6" })
           .setLngLat(caregiverLocation)
           .setPopup(new mapboxgl.Popup().setHTML(`<h3>${caregiverData.name}</h3><p>On the way</p>`))
           .addTo(map.current);
         
-        // Add user location marker
         new mapboxgl.Marker({ color: "#10b981" })
           .setLngLat(userLocation)
           .setPopup(new mapboxgl.Popup().setHTML("<h3>Your Location</h3>"))
           .addTo(map.current);
         
-        // Add route line
         map.current.addSource('route', {
           'type': 'geojson',
           'data': {
@@ -103,7 +100,6 @@ const LiveTracking = () => {
   useEffect(() => {
     if (!map.current) return;
     
-    // Update marker position
     const markers = document.getElementsByClassName('mapboxgl-marker');
     if (markers[0]) {
       markers[0].remove();
@@ -114,7 +110,6 @@ const LiveTracking = () => {
         .addTo(map.current);
     }
     
-    // Update route line
     if (map.current.getSource('route')) {
       map.current.getSource('route').setData({
         'type': 'Feature',
