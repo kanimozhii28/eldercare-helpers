@@ -8,7 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { MapPin, Clock, Phone, Navigation, Star } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { GoogleMap, LoadScript, Marker, DirectionsService, DirectionsRenderer } from '@react-google-maps/api';
+import { GoogleMap, LoadScript, Marker, DirectionsRenderer, DirectionsService } from '@react-google-maps/api';
 
 type LatLng = {
   lat: number;
@@ -67,7 +67,10 @@ const LiveTracking = () => {
     }
   }, [mapInitialized, userLocation]);
 
-  const directionsCallback = (result: google.maps.DirectionsResult | null, status: google.maps.DirectionsStatus) => {
+  const directionsCallback = (
+    result: google.maps.DirectionsResult | null, 
+    status: google.maps.DirectionsStatus
+  ) => {
     if (result !== null && status === 'OK') {
       setDirections(result);
       if (result.routes[0]?.legs[0]?.duration) {
