@@ -29,7 +29,8 @@ const LiveTracking = () => {
   const [userLocation, setUserLocation] = useState<LatLng>({lat: 40.7152, lng: -74.0105});
   const [estimatedTime, setEstimatedTime] = useState("12 minutes");
   const [mapInitialized, setMapInitialized] = useState(false);
-  const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
+  const [directions, setDirections] = useState<any>(null);
+  const [isApiLoaded, setIsApiLoaded] = useState(false);
   const [caregiverData, setCaregiverData] = useState({
     name: "Sarah Johnson",
     phone: "555-123-4567",
@@ -42,7 +43,7 @@ const LiveTracking = () => {
 
   useEffect(() => {
     // Simulating caregiver movement every 5 seconds
-    if (mapInitialized) {
+    if (mapInitialized && isApiLoaded) {
       const interval = setInterval(() => {
         // Move caregiver slightly closer to user
         setCaregiverLocation(prev => {
@@ -65,11 +66,11 @@ const LiveTracking = () => {
       
       return () => clearInterval(interval);
     }
-  }, [mapInitialized, userLocation]);
+  }, [mapInitialized, isApiLoaded, userLocation]);
 
   const directionsCallback = (
-    result: google.maps.DirectionsResult | null, 
-    status: google.maps.DirectionsStatus
+    result: any | null, 
+    status: any
   ) => {
     if (result !== null && status === 'OK') {
       setDirections(result);
@@ -81,6 +82,11 @@ const LiveTracking = () => {
   
   const handleCompleteService = () => {
     navigate('/review-booking');
+  };
+
+  const handleApiLoaded = () => {
+    console.log("Google Maps API loaded successfully");
+    setIsApiLoaded(true);
   };
 
   if (!mapInitialized) {
@@ -224,50 +230,58 @@ const LiveTracking = () => {
             
             <div className="w-full md:w-2/3">
               <div className="rounded-xl overflow-hidden shadow-lg">
-                <LoadScript googleMapsApiKey={googleMapsApiKey}>
-                  <GoogleMap
-                    mapContainerStyle={containerStyle}
-                    center={caregiverLocation}
-                    zoom={14}
-                    options={{
-                      zoomControl: true,
-                      streetViewControl: false,
-                      mapTypeControl: false,
-                      fullscreenControl: false,
-                    }}
-                  >
-                    <Marker
-                      position={caregiverLocation}
-                      icon={{
-                        url: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
-                        scaledSize: new window.google.maps.Size(40, 40)
-                      }}
-                    />
-                    <Marker
-                      position={userLocation}
-                      icon={{
-                        url: "https://maps.google.com/mapfiles/ms/icons/green-dot.png",
-                        scaledSize: new window.google.maps.Size(40, 40)
-                      }}
-                    />
-
-                    <DirectionsService
+                <LoadScript
+                  googleMapsApiKey={googleMapsApiKey}
+                  onLoad={handleApiLoaded}
+                >
+                  {isApiLoaded && (
+                    <GoogleMap
+                      mapContainerStyle={containerStyle}
+                      center={caregiverLocation}
+                      zoom={14}
                       options={{
-                        destination: userLocation,
-                        origin: caregiverLocation,
-                        travelMode: google.maps.TravelMode.DRIVING
+                        zoomControl: true,
+                        streetViewControl: false,
+                        mapTypeControl: false,
+                        fullscreenControl: false,
                       }}
-                      callback={directionsCallback}
-                    />
-                    {directions && (
-                      <DirectionsRenderer
-                        options={{
-                          directions: directions,
-                          suppressMarkers: true
+                    >
+                      <Marker
+                        position={caregiverLocation}
+                        icon={{
+                          url: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+                          scaledSize: window.google?.maps?.Size ? new window.google.maps.Size(40, 40) : undefined
                         }}
                       />
-                    )}
-                  </GoogleMap>
+                      <Marker
+                        position={userLocation}
+                        icon={{
+                          url: "https://maps.google.com/mapfiles/ms/icons/green-dot.png",
+                          scaledSize: window.google?.maps?.Size ? new window.google.maps.Size(40, 40) : undefined
+                        }}
+                      />
+
+                      {isApiLoaded && (
+                        <DirectionsService
+                          options={{
+                            destination: userLocation,
+                            origin: caregiverLocation,
+                            travelMode: window.google?.maps?.TravelMode?.DRIVING || 'DRIVING'
+                          }}
+                          callback={directionsCallback}
+                        />
+                      )}
+                      
+                      {directions && (
+                        <DirectionsRenderer
+                          options={{
+                            directions: directions,
+                            suppressMarkers: true
+                          }}
+                        />
+                      )}
+                    </GoogleMap>
+                  )}
                 </LoadScript>
               </div>
             </div>
