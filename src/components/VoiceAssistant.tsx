@@ -1,8 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
-import { Mic, X, MessageSquare, Loader, MicOff } from 'lucide-react';
+import { Mic, X, MessageSquare, Loader, MicOff, Command, Info, HelpCircle, Home } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const VoiceAssistant = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -11,11 +13,24 @@ const VoiceAssistant = () => {
   const [response, setResponse] = useState('');
   const [chatHistory, setChatHistory] = useState([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showCommandsHelp, setShowCommandsHelp] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   
   // Create a recognition object if the browser supports it
   const [recognition, setRecognition] = useState(null);
+
+  // Suggested commands and their descriptions for better user guidance
+  const suggestedCommands = [
+    { command: "Find a cooking caregiver", description: "Search for caregivers specialized in meal preparation" },
+    { command: "How do I book a caregiver?", description: "Get guidance on the booking process" },
+    { command: "Show me medical caregivers", description: "View available medical care specialists" },
+    { command: "Tell me about personal care", description: "Learn about personal care services" },
+    { command: "Track my booking", description: "Go to live tracking page" },
+    { command: "Show payment options", description: "View available payment methods" },
+    { command: "I need overnight care", description: "Find overnight care specialists" },
+    { command: "How does rating work?", description: "Learn about the review system" }
+  ];
 
   // Define caregiver categories with more detailed descriptions
   const caregiverCategories = {
@@ -131,6 +146,14 @@ const VoiceAssistant = () => {
       // Reset states when opening
       setTranscript('');
       setResponse('');
+      
+      // Show commands help when opening
+      setShowCommandsHelp(true);
+      
+      // Auto-hide commands help after 5 seconds
+      setTimeout(() => {
+        setShowCommandsHelp(false);
+      }, 5000);
     }
   };
 
@@ -202,6 +225,9 @@ const VoiceAssistant = () => {
     setChatHistory(prev => [...prev, { type: 'user', text: query }]);
     
     setIsProcessing(true);
+    
+    // Hide commands help when user starts a conversation
+    setShowCommandsHelp(false);
     
     // Simulate AI processing
     setTimeout(() => {
@@ -281,6 +307,12 @@ const VoiceAssistant = () => {
         actions = [
           { label: 'Write a Review', path: '/review-booking' }
         ];
+      } else if (query.toLowerCase().includes("go home") || query.toLowerCase().includes("home page") || query.toLowerCase().includes("main page")) {
+        botResponse = "I'll navigate you to the home page right away.";
+        
+        setTimeout(() => {
+          navigate('/');
+        }, 1000);
       } else {
         botResponse = "I'm here to help with questions about our eldercare services, caregivers, bookings, and more. How can I assist you today?";
         
@@ -317,140 +349,240 @@ const VoiceAssistant = () => {
     navigate(path);
   };
 
+  const handleCommandClick = (command) => {
+    setTranscript(command);
+    handleQueryResponse(command);
+  };
+
   return (
     <>
       {/* Voice Assistant Button */}
-      <button
+      <motion.button
         onClick={toggleAssistant}
         className={`fixed bottom-6 right-6 z-50 p-4 rounded-full shadow-lg transition-all btn-press ${
-          isOpen ? 'bg-red-500 text-white rotate-90' : 'bg-eldercare-blue text-white'
+          isOpen ? 'bg-red-500 text-white' : 'bg-eldercare-blue text-white'
         }`}
         aria-label={isOpen ? 'Close voice assistant' : 'Open voice assistant'}
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
       >
         {isOpen ? <X className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
-      </button>
+      </motion.button>
 
       {/* Voice Assistant Panel */}
-      {isOpen && (
-        <div className="fixed bottom-24 right-6 w-full max-w-md z-50 glass rounded-2xl shadow-xl overflow-hidden animate-slide-up">
-          <div className="p-4 bg-eldercare-blue text-white">
-            <div className="flex items-center justify-between">
-              <h3 className="font-medium">Voice Assistant</h3>
-              <button 
-                onClick={toggleAssistant}
-                className="p-1 rounded-full hover:bg-white/10 transition-colors"
-                aria-label="Close voice assistant"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <p className="text-xs opacity-80">
-              Speak or type your question about elder care services
-            </p>
-          </div>
-          
-          <div className="p-6 max-h-96 overflow-y-auto bg-white">
-            {chatHistory.length > 0 ? (
-              <div className="space-y-4">
-                {chatHistory.map((message, index) => (
-                  <div key={index} className="mb-4">
-                    <div className="flex items-start gap-3">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                        message.type === 'user' 
-                          ? 'bg-eldercare-warmGray' 
-                          : 'bg-eldercare-blue/10'
-                      }`}>
-                        {message.type === 'user' ? (
-                          <MessageSquare className="w-4 h-4 text-white" />
-                        ) : (
-                          <Mic className="w-4 h-4 text-eldercare-blue" />
-                        )}
-                      </div>
-                      <div className={`p-3 rounded-2xl rounded-tl-none ${
-                        message.type === 'user' 
-                          ? 'bg-eldercare-warmGray/10' 
-                          : 'bg-eldercare-lightBlue'
-                      }`}>
-                        <p className="text-sm">{message.text}</p>
-                        
-                        {message.actions && (
-                          <div className="flex flex-wrap gap-2 mt-3">
-                            {message.actions.map((action, actionIndex) => (
-                              <button
-                                key={actionIndex}
-                                onClick={() => handleActionClick(action.path)}
-                                className="px-3 py-1 text-xs bg-eldercare-blue text-white rounded-full hover:bg-blue-600 transition-colors"
-                              >
-                                {action.label}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                
-                {isProcessing && (
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-full bg-eldercare-blue/10 flex items-center justify-center flex-shrink-0">
-                      <Loader className="w-4 h-4 text-eldercare-blue animate-spin" />
-                    </div>
-                    <div className="bg-eldercare-lightBlue p-3 rounded-2xl rounded-tl-none">
-                      <div className="flex items-center space-x-2">
-                        <div className="w-2 h-2 bg-eldercare-blue rounded-full animate-pulse"></div>
-                        <div className="w-2 h-2 bg-eldercare-blue rounded-full animate-pulse delay-75"></div>
-                        <div className="w-2 h-2 bg-eldercare-blue rounded-full animate-pulse delay-150"></div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-eldercare-lightBlue flex items-center justify-center">
-                  <Mic className="w-8 h-8 text-eldercare-blue" />
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.9 }}
+            transition={{ duration: 0.3 }}
+            className="fixed bottom-24 right-6 w-full max-w-md z-50 glass rounded-2xl shadow-xl overflow-hidden"
+          >
+            <div className="p-4 bg-eldercare-blue text-white">
+              <div className="flex items-center justify-between">
+                <h3 className="font-medium flex items-center">
+                  <Command className="h-4 w-4 mr-2" /> Voice Assistant
+                </h3>
+                <div className="flex items-center">
+                  <button
+                    onClick={() => setShowCommandsHelp(!showCommandsHelp)}
+                    className="p-1 rounded-full hover:bg-white/10 transition-colors mr-2"
+                    aria-label="Show commands help"
+                  >
+                    <HelpCircle className="w-4 h-4" />
+                  </button>
+                  <button 
+                    onClick={toggleAssistant}
+                    className="p-1 rounded-full hover:bg-white/10 transition-colors"
+                    aria-label="Close voice assistant"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
                 </div>
-                <p className="text-gray-700 mb-4">
-                  How can I help you today?
-                </p>
-                <p className="text-xs text-muted-foreground mb-6">
-                  Try saying: "Find a cooking caregiver" or "I need help with medical care"
-                </p>
               </div>
-            )}
-          </div>
-          
-          <div className="p-4 border-t border-border bg-white">
-            <form onSubmit={handleTextSubmit} className="flex gap-2">
-              <input
-                type="text"
-                placeholder="Type your question..."
-                className="flex-1 px-4 py-2 rounded-full bg-muted border border-border focus:outline-none focus:ring-2 focus:ring-eldercare-blue/20"
-                value={transcript}
-                onChange={(e) => setTranscript(e.target.value)}
-              />
-              {isListening ? (
-                <button
-                  type="button"
-                  onClick={handleStopListening}
-                  className="p-3 rounded-full btn-press bg-red-500 text-white animate-pulse"
+              <p className="text-xs opacity-80">
+                Speak or type your question about elder care services
+              </p>
+            </div>
+            
+            <div className="p-6 max-h-96 overflow-y-auto bg-white">
+              {showCommandsHelp && (
+                <motion.div 
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="mb-6 bg-blue-50 rounded-lg p-4"
                 >
-                  <MicOff className="w-5 h-5" />
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleListen}
-                  className="p-3 rounded-full btn-press bg-eldercare-blue text-white"
-                >
-                  <Mic className="w-5 h-5" />
-                </button>
+                  <div className="flex items-center mb-2 text-eldercare-blue">
+                    <Info className="h-4 w-4 mr-2" />
+                    <h4 className="font-medium">Try these commands</h4>
+                  </div>
+                  <div className="grid grid-cols-1 gap-2">
+                    {suggestedCommands.slice(0, 4).map((item, index) => (
+                      <button
+                        key={index}
+                        className="text-left p-2 hover:bg-blue-100 rounded-md text-sm transition-colors flex justify-between items-center"
+                        onClick={() => handleCommandClick(item.command)}
+                      >
+                        <span className="font-medium">{item.command}</span>
+                        <span className="text-xs text-gray-500">{item.description}</span>
+                      </button>
+                    ))}
+                  </div>
+                  <Button 
+                    variant="link" 
+                    size="sm" 
+                    className="text-eldercare-blue p-0 h-auto mt-2"
+                    onClick={() => setShowCommandsHelp(false)}
+                  >
+                    Hide suggestions
+                  </Button>
+                </motion.div>
               )}
-            </form>
-          </div>
-        </div>
-      )}
+
+              {chatHistory.length > 0 ? (
+                <div className="space-y-4">
+                  {chatHistory.map((message, index) => (
+                    <motion.div 
+                      key={index} 
+                      className="mb-4"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                          message.type === 'user' 
+                            ? 'bg-eldercare-warmGray' 
+                            : 'bg-eldercare-blue/10'
+                        }`}>
+                          {message.type === 'user' ? (
+                            <MessageSquare className="w-4 h-4 text-white" />
+                          ) : (
+                            <Mic className="w-4 h-4 text-eldercare-blue" />
+                          )}
+                        </div>
+                        <div className={`p-3 rounded-2xl rounded-tl-none ${
+                          message.type === 'user' 
+                            ? 'bg-eldercare-warmGray/10' 
+                            : 'bg-eldercare-lightBlue'
+                        }`}>
+                          <p className="text-sm">{message.text}</p>
+                          
+                          {message.actions && (
+                            <div className="flex flex-wrap gap-2 mt-3">
+                              {message.actions.map((action, actionIndex) => (
+                                <button
+                                  key={actionIndex}
+                                  onClick={() => handleActionClick(action.path)}
+                                  className="px-3 py-1 text-xs bg-eldercare-blue text-white rounded-full hover:bg-blue-600 transition-colors shadow-sm"
+                                >
+                                  {action.label}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                  
+                  {isProcessing && (
+                    <motion.div 
+                      className="flex items-start gap-3"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                    >
+                      <div className="w-8 h-8 rounded-full bg-eldercare-blue/10 flex items-center justify-center flex-shrink-0">
+                        <Loader className="w-4 h-4 text-eldercare-blue animate-spin" />
+                      </div>
+                      <div className="bg-eldercare-lightBlue p-3 rounded-2xl rounded-tl-none">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-2 h-2 bg-eldercare-blue rounded-full animate-pulse"></div>
+                          <div className="w-2 h-2 bg-eldercare-blue rounded-full animate-pulse delay-75"></div>
+                          <div className="w-2 h-2 bg-eldercare-blue rounded-full animate-pulse delay-150"></div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </div>
+              ) : (
+                <motion.div 
+                  className="text-center py-8"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-eldercare-lightBlue flex items-center justify-center">
+                    <Mic className="w-8 h-8 text-eldercare-blue" />
+                  </div>
+                  <p className="text-gray-700 mb-4">
+                    How can I help you today?
+                  </p>
+                  <p className="text-xs text-muted-foreground mb-6">
+                    Try saying: "Find a cooking caregiver" or "I need help with medical care"
+                  </p>
+                  
+                  <div className="flex flex-col gap-2 max-w-xs mx-auto">
+                    {suggestedCommands.slice(0, 3).map((item, index) => (
+                      <button
+                        key={index}
+                        className="text-left p-2 border border-gray-200 hover:border-eldercare-blue hover:bg-eldercare-lightBlue rounded-md text-sm transition-colors"
+                        onClick={() => handleCommandClick(item.command)}
+                      >
+                        {item.command}
+                      </button>
+                    ))}
+                    
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate('/')}
+                      className="mt-2"
+                    >
+                      <Home className="h-4 w-4 mr-2" /> Go to Home
+                    </Button>
+                  </div>
+                </motion.div>
+              )}
+            </div>
+            
+            <div className="p-4 border-t border-border bg-white">
+              <form onSubmit={handleTextSubmit} className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Type your question..."
+                  className="flex-1 px-4 py-2 rounded-full bg-muted border border-border focus:outline-none focus:ring-2 focus:ring-eldercare-blue/20"
+                  value={transcript}
+                  onChange={(e) => setTranscript(e.target.value)}
+                />
+                {isListening ? (
+                  <motion.button
+                    type="button"
+                    onClick={handleStopListening}
+                    className="p-3 rounded-full btn-press bg-red-500 text-white"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <MicOff className="w-5 h-5" />
+                  </motion.button>
+                ) : (
+                  <motion.button
+                    type="button"
+                    onClick={handleListen}
+                    className="p-3 rounded-full btn-press bg-eldercare-blue text-white"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Mic className="w-5 h-5" />
+                  </motion.button>
+                )}
+              </form>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 };

@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -7,21 +8,28 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { MapPin, Clock, Phone, Navigation, Star } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
+import { GoogleMap, LoadScript, Marker, DirectionsService, DirectionsRenderer } from '@react-google-maps/api';
 
-type LngLat = [number, number];
+type LatLng = {
+  lat: number;
+  lng: number;
+};
+
+const containerStyle = {
+  width: '100%',
+  height: '600px',
+  borderRadius: '0.75rem'
+};
 
 const LiveTracking = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const mapContainer = useRef(null);
-  const map = useRef(null);
-  const [mapboxToken, setMapboxToken] = useState('');
-  const [caregiverLocation, setCaregiverLocation] = useState<LngLat>([-74.006, 40.7128]);
-  const [userLocation, setUserLocation] = useState<LngLat>([-74.0105, 40.7152]);
+  const [googleMapsApiKey, setGoogleMapsApiKey] = useState('');
+  const [caregiverLocation, setCaregiverLocation] = useState<LatLng>({lat: 40.7128, lng: -74.006});
+  const [userLocation, setUserLocation] = useState<LatLng>({lat: 40.7152, lng: -74.0105});
   const [estimatedTime, setEstimatedTime] = useState("12 minutes");
   const [mapInitialized, setMapInitialized] = useState(false);
+  const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
   const [caregiverData, setCaregiverData] = useState({
     name: "Sarah Johnson",
     phone: "555-123-4567",
@@ -33,97 +41,40 @@ const LiveTracking = () => {
   });
 
   useEffect(() => {
-    if (!mapboxToken || mapInitialized || !mapContainer.current) return;
-    
-    try {
-      mapboxgl.accessToken = mapboxToken;
-      
-      map.current = new mapboxgl.Map({
-        container: mapContainer.current,
-        style: 'mapbox://styles/mapbox/streets-v11',
-        center: caregiverLocation,
-        zoom: 13
-      });
-
-      map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
-      
-      map.current.on('load', () => {
-        new mapboxgl.Marker({ color: "#3b82f6" })
-          .setLngLat(caregiverLocation)
-          .setPopup(new mapboxgl.Popup().setHTML(`<h3>${caregiverData.name}</h3><p>On the way</p>`))
-          .addTo(map.current);
-        
-        new mapboxgl.Marker({ color: "#10b981" })
-          .setLngLat(userLocation)
-          .setPopup(new mapboxgl.Popup().setHTML("<h3>Your Location</h3>"))
-          .addTo(map.current);
-        
-        map.current.addSource('route', {
-          'type': 'geojson',
-          'data': {
-            'type': 'Feature',
-            'properties': {},
-            'geometry': {
-              'type': 'LineString',
-              'coordinates': [caregiverLocation, userLocation]
-            }
-          }
+    // Simulating caregiver movement every 5 seconds
+    if (mapInitialized) {
+      const interval = setInterval(() => {
+        // Move caregiver slightly closer to user
+        setCaregiverLocation(prev => {
+          const newLat = prev.lat + (userLocation.lat - prev.lat) * 0.1;
+          const newLng = prev.lng + (userLocation.lng - prev.lng) * 0.1;
+          
+          // Update estimated time based on distance
+          const distance = Math.sqrt(
+            Math.pow(userLocation.lat - newLat, 2) + 
+            Math.pow(userLocation.lng - newLng, 2)
+          );
+          
+          // Rough estimation of time in minutes
+          const timeInMinutes = Math.round(distance * 100);
+          setEstimatedTime(`${timeInMinutes} minutes`);
+          
+          return { lat: newLat, lng: newLng };
         });
-        
-        map.current.addLayer({
-          'id': 'route',
-          'type': 'line',
-          'source': 'route',
-          'layout': {
-            'line-join': 'round',
-            'line-cap': 'round'
-          },
-          'paint': {
-            'line-color': '#3b82f6',
-            'line-width': 4,
-            'line-dasharray': [2, 1]
-          }
-        });
-      });
+      }, 5000);
       
-      setMapInitialized(true);
-    } catch (error) {
-      console.error('Map initialization error:', error);
-      toast({
-        title: "Map Error",
-        description: "There was an error loading the map. Please check your Mapbox token.",
-        variant: "destructive"
-      });
+      return () => clearInterval(interval);
     }
-  }, [mapboxToken, mapInitialized, caregiverData.name]);
+  }, [mapInitialized, userLocation]);
 
-  useEffect(() => {
-    if (!map.current) return;
-    
-    const markers = document.getElementsByClassName('mapboxgl-marker');
-    if (markers[0]) {
-      markers[0].remove();
-      
-      new mapboxgl.Marker({ color: "#3b82f6" })
-        .setLngLat(caregiverLocation)
-        .setPopup(new mapboxgl.Popup().setHTML(`<h3>${caregiverData.name}</h3><p>On the way</p>`))
-        .addTo(map.current);
+  const directionsCallback = (result: google.maps.DirectionsResult | null, status: google.maps.DirectionsStatus) => {
+    if (result !== null && status === 'OK') {
+      setDirections(result);
+      if (result.routes[0]?.legs[0]?.duration) {
+        setEstimatedTime(result.routes[0].legs[0].duration.text);
+      }
     }
-    
-    if (map.current.getSource('route')) {
-      map.current.getSource('route').setData({
-        'type': 'Feature',
-        'properties': {},
-        'geometry': {
-          'type': 'LineString',
-          'coordinates': [
-            caregiverLocation,
-            userLocation
-          ]
-        }
-      });
-    }
-  }, [caregiverLocation, caregiverData.name]);
+  };
   
   const handleCompleteService = () => {
     navigate('/review-booking');
@@ -137,20 +88,26 @@ const LiveTracking = () => {
           <Card>
             <CardContent className="p-6">
               <h2 className="text-lg font-semibold mb-4">Map Configuration Required</h2>
-              <p className="mb-4 text-muted-foreground">Please enter your Mapbox public token to initialize the map:</p>
+              <p className="mb-4 text-muted-foreground">Please enter your Google Maps API key to initialize the map:</p>
               <Input
                 type="text"
-                placeholder="Enter your Mapbox token"
-                value={mapboxToken}
-                onChange={(e) => setMapboxToken(e.target.value)}
+                placeholder="Enter your Google Maps API key"
+                value={googleMapsApiKey}
+                onChange={(e) => setGoogleMapsApiKey(e.target.value)}
                 className="mb-4"
               />
               <p className="text-sm text-muted-foreground mb-4">
-                You can get your public token from{" "}
-                <a href="https://www.mapbox.com/" target="_blank" rel="noopener noreferrer" className="text-eldercare-blue hover:underline">
-                  Mapbox.com
+                You can get your API key from{" "}
+                <a href="https://console.cloud.google.com/google/maps-apis" target="_blank" rel="noopener noreferrer" className="text-eldercare-blue hover:underline">
+                  Google Cloud Console
                 </a>
               </p>
+              <Button 
+                className="w-full bg-eldercare-blue hover:bg-blue-600"
+                onClick={() => setMapInitialized(true)}
+              >
+                Initialize Map
+              </Button>
             </CardContent>
           </Card>
         </div>
@@ -167,13 +124,13 @@ const LiveTracking = () => {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row gap-6">
             <div className="w-full md:w-1/3">
-              <Card className="mb-6">
+              <Card className="mb-6 shadow-lg hover:shadow-xl transition-shadow">
                 <CardContent className="p-6">
                   <div className="flex items-center gap-4 mb-4">
                     <img 
                       src={caregiverData.image} 
                       alt={caregiverData.name} 
-                      className="w-16 h-16 rounded-full object-cover"
+                      className="w-16 h-16 rounded-full object-cover border-2 border-eldercare-blue"
                     />
                     <div>
                       <h3 className="font-semibold text-lg">{caregiverData.name}</h3>
@@ -211,7 +168,7 @@ const LiveTracking = () => {
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">Estimated Arrival</p>
-                        <p className="font-medium">{estimatedTime}</p>
+                        <p className="font-medium text-green-600">{estimatedTime}</p>
                       </div>
                     </div>
                     
@@ -226,13 +183,13 @@ const LiveTracking = () => {
                     </div>
                   </div>
                   
-                  <Button className="w-full bg-eldercare-blue hover:bg-blue-600">
+                  <Button className="w-full bg-eldercare-blue hover:bg-blue-600 shadow-md">
                     Call Caregiver
                   </Button>
                 </CardContent>
               </Card>
               
-              <Card>
+              <Card className="shadow-lg hover:shadow-xl transition-shadow">
                 <CardContent className="p-6">
                   <h3 className="font-semibold text-lg mb-4">Service Details</h3>
                   
@@ -253,7 +210,7 @@ const LiveTracking = () => {
                   
                   <Button 
                     variant="outline" 
-                    className="w-full border-eldercare-blue text-eldercare-blue hover:bg-eldercare-lightBlue"
+                    className="w-full border-eldercare-blue text-eldercare-blue hover:bg-eldercare-lightBlue shadow-md"
                     onClick={handleCompleteService}
                   >
                     Complete Service & Review
@@ -263,10 +220,53 @@ const LiveTracking = () => {
             </div>
             
             <div className="w-full md:w-2/3">
-              <div 
-                ref={mapContainer} 
-                className="h-[600px] rounded-xl overflow-hidden shadow-md"
-              />
+              <div className="rounded-xl overflow-hidden shadow-lg">
+                <LoadScript googleMapsApiKey={googleMapsApiKey}>
+                  <GoogleMap
+                    mapContainerStyle={containerStyle}
+                    center={caregiverLocation}
+                    zoom={14}
+                    options={{
+                      zoomControl: true,
+                      streetViewControl: false,
+                      mapTypeControl: false,
+                      fullscreenControl: false,
+                    }}
+                  >
+                    <Marker
+                      position={caregiverLocation}
+                      icon={{
+                        url: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+                        scaledSize: new window.google.maps.Size(40, 40)
+                      }}
+                    />
+                    <Marker
+                      position={userLocation}
+                      icon={{
+                        url: "https://maps.google.com/mapfiles/ms/icons/green-dot.png",
+                        scaledSize: new window.google.maps.Size(40, 40)
+                      }}
+                    />
+
+                    <DirectionsService
+                      options={{
+                        destination: userLocation,
+                        origin: caregiverLocation,
+                        travelMode: google.maps.TravelMode.DRIVING
+                      }}
+                      callback={directionsCallback}
+                    />
+                    {directions && (
+                      <DirectionsRenderer
+                        options={{
+                          directions: directions,
+                          suppressMarkers: true
+                        }}
+                      />
+                    )}
+                  </GoogleMap>
+                </LoadScript>
+              </div>
             </div>
           </div>
         </div>
