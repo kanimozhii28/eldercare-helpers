@@ -261,12 +261,12 @@ const LiveTracking = () => {
                         }}
                       />
 
-                      {isApiLoaded && (
+                      {isApiLoaded && window.google?.maps?.TravelMode && (
                         <DirectionsService
                           options={{
                             destination: userLocation,
                             origin: caregiverLocation,
-                            travelMode: window.google?.maps?.TravelMode?.DRIVING || 'DRIVING'
+                            travelMode: window.google.maps.TravelMode.DRIVING
                           }}
                           callback={directionsCallback}
                         />
