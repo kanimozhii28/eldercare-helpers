@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { SOS, X, Phone } from 'lucide-react';
+import { AlertCircle, X, Phone } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
 
@@ -65,7 +65,7 @@ const SOSButton = () => {
         {isExpanded ? (
           <X className="h-6 w-6" />
         ) : (
-          <SOS className="h-6 w-6" />
+          <AlertCircle className="h-6 w-6" />
         )}
       </motion.button>
     </>
