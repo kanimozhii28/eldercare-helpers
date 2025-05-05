@@ -1,11 +1,17 @@
 
 import React, { useState, useEffect } from 'react';
 import { Bell, Menu, X, Search, Mic } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const location = useLocation();
+
+  // Don't show navbar on login page
+  if (location.pathname === '/login') {
+    return null;
+  }
 
   useEffect(() => {
     const handleScroll = () => {
@@ -27,13 +33,13 @@ const Navbar = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
+          <Link to="/home" className="flex items-center space-x-2">
             <span className="text-xl font-semibold bg-gradient-to-r from-eldercare-blue to-blue-600 bg-clip-text text-transparent">ElderCare</span>
           </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <Link to="/" className="text-sm font-medium transition-colors hover:text-eldercare-blue">
+            <Link to="/home" className="text-sm font-medium transition-colors hover:text-eldercare-blue">
               Home
             </Link>
             <Link to="/services" className="text-sm font-medium transition-colors hover:text-eldercare-blue">
@@ -52,17 +58,14 @@ const Navbar = () => {
             <button className="p-2 rounded-full hover:bg-gray-100 transition-colors" aria-label="Search">
               <Search className="w-5 h-5" />
             </button>
-            <button className="p-2 rounded-full hover:bg-gray-100 transition-colors" aria-label="Voice Assistant">
-              <Mic className="w-5 h-5" />
-            </button>
             <button className="p-2 rounded-full hover:bg-gray-100 transition-colors" aria-label="Notifications">
               <Bell className="w-5 h-5" />
             </button>
             <Link 
-              to="/login" 
+              to="/profile" 
               className="px-4 py-2 text-sm font-medium text-white bg-eldercare-blue rounded-full shadow-sm hover:bg-blue-600 transition-colors btn-press"
             >
-              Sign In
+              My Profile
             </Link>
           </div>
 
@@ -82,7 +85,7 @@ const Navbar = () => {
         <div className="md:hidden glass border-t border-gray-100 animate-slide-up">
           <div className="container mx-auto px-4 py-4 space-y-4">
             <Link 
-              to="/" 
+              to="/home" 
               className="block px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
               onClick={() => setIsMenuOpen(false)}
             >
@@ -113,19 +116,16 @@ const Navbar = () => {
               <button className="p-2 rounded-full hover:bg-gray-100 transition-colors" aria-label="Search">
                 <Search className="w-5 h-5" />
               </button>
-              <button className="p-2 rounded-full hover:bg-gray-100 transition-colors" aria-label="Voice Assistant">
-                <Mic className="w-5 h-5" />
-              </button>
               <button className="p-2 rounded-full hover:bg-gray-100 transition-colors" aria-label="Notifications">
                 <Bell className="w-5 h-5" />
               </button>
             </div>
             <Link 
-              to="/login" 
+              to="/profile" 
               className="block w-full px-4 py-2.5 text-center text-sm font-medium text-white bg-eldercare-blue rounded-full shadow-sm hover:bg-blue-600 transition-colors btn-press"
               onClick={() => setIsMenuOpen(false)}
             >
-              Sign In
+              My Profile
             </Link>
           </div>
         </div>

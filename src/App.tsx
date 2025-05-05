@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import Services from "./pages/Services";
 import Caregivers from "./pages/Caregivers";
@@ -20,6 +20,7 @@ import ReviewBooking from "./pages/ReviewBooking";
 import Profile from "./pages/Profile";
 import CarePlans from "./pages/CarePlans";
 import VoiceAssistant from "./components/VoiceAssistant";
+import SOSButton from "./components/SOSButton";
 
 const queryClient = new QueryClient();
 
@@ -30,7 +31,8 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Index />} />
+          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/home" element={<Index />} />
           <Route path="/services" element={<Services />} />
           <Route path="/services/:serviceId" element={<ServiceDetail />} />
           <Route path="/caregivers" element={<Caregivers />} />
@@ -46,6 +48,7 @@ const App = () => (
           <Route path="/care-plans" element={<CarePlans />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <SOSButton />
         <VoiceAssistant />
       </BrowserRouter>
     </TooltipProvider>
