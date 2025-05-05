@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Eye, EyeOff, UserIcon, KeyIcon, Star, Calendar, Phone, Heart, Ruler, Weight, Droplet } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -21,8 +21,10 @@ import { format } from 'date-fns';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Textarea } from '@/components/ui/textarea';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Login = () => {
+  const { user, loading, signIn, signUp } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -43,51 +45,75 @@ const Login = () => {
   
   const { toast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    
-    // Simulate login process
-    setTimeout(() => {
-      setIsLoading(false);
-      toast({
-        title: "Login successful",
-        description: "Welcome back to ElderCare!",
-      });
-      navigate('/home'); // Redirect to home page after login
-    }, 1500);
-  };
-
-  const handleSignup = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    
-    // Validate required fields
-    if (!firstName || !lastName || !email || !password || !dob || !phoneNumber || 
-        !emergencyContact || !gender || !bloodGroup || !address) {
-      setIsLoading(false);
-      toast({
-        title: "Missing required fields",
-        description: "Please fill in all required fields.",
-        variant: "destructive",
-      });
-      return;
+  useEffect(() => {
+    // If user is already logged in, redirect to home
+    if (user && !loading) {
+      navigate('/home');
     }
+  }, [user, loading, navigate]);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
     
-    // Simulate signup process
-    setTimeout(() => {
+    try {
+      await signIn(email, password);
+    } finally {
       setIsLoading(false);
-      toast({
-        title: "Account created",
-        description: "Your account has been created successfully. Please sign in.",
-        variant: "default",
-      });
-      
-      // Switch to sign in tab after successful signup
-      document.getElementById('signin-tab')?.click();
-    }, 1500);
+    }
   };
+
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    
+    try {
+      // Validate required fields
+      if (!firstName || !lastName || !email || !password || !dob || !phoneNumber || 
+          !emergencyContact || !gender || !bloodGroup || !address) {
+        toast({
+          title: "Missing required fields",
+          description: "Please fill in all required fields.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      const userData = {
+        first_name: firstName,
+        last_name: lastName,
+        date_of_birth: dob,
+        phone_number: phoneNumber,
+        age: age,
+        emergency_contact: emergencyContact,
+        health_condition: healthCondition,
+        under_treatment: underTreatment,
+        gender: gender,
+        height: height,
+        weight: weight,
+        blood_group: bloodGroup,
+        address: address,
+      };
+
+      await signUp(email, password, userData);
+      
+      // Reset form after successful signup
+      document.getElementById('signin-tab')?.click();
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // If still loading auth state, show loading indicator
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row">

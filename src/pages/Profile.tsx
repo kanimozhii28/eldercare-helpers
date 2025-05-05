@@ -1,6 +1,7 @@
 
-import React, { useState } from 'react';
-import Navbar from '@/components/Navbar';
+import React, { useState, useEffect } from 'react';
+import { format } from 'date-fns';
+import AuthNavbar from '@/components/AuthNavbar';
 import Footer from '@/components/Footer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
@@ -14,6 +15,17 @@ import { Calendar, Clock, MapPin, Phone, Mail, User, Edit, Heart, X, CheckCircle
 import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { Textarea } from '@/components/ui/textarea';
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 // Define caregiver type with id
 interface Caregiver {
@@ -27,18 +39,29 @@ interface Caregiver {
   reviews?: number;
 }
 
+interface ProfileData {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  email: string | null;
+  phone_number: string | null;
+  emergency_contact: string | null;
+  date_of_birth: string | null;
+  gender: string | null;
+  height: string | null;
+  weight: string | null;
+  blood_group: string | null;
+  address: string | null;
+  health_condition: string | null;
+  under_treatment: boolean | null;
+}
+
 const Profile = () => {
   const { toast } = useToast();
+  const { user, updateProfile } = useAuth();
   const [editMode, setEditMode] = useState(false);
-  
-  // Mock data for the profile
-  const [profile, setProfile] = useState({
-    name: "John Smith",
-    email: "john.smith@example.com",
-    phone: "+1 (555) 123-4567",
-    address: "123 Main St, New York, NY 10001",
-    profileImage: "https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3"
-  });
+  const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState<ProfileData | null>(null);
   
   // Mock data for bookings
   const [bookings, setBookings] = useState([
@@ -100,31 +123,85 @@ const Profile = () => {
       reviews: 156
     }
   ]);
-  
-  const form = useForm({
-    defaultValues: profile
+
+  const form = useForm<ProfileData>({
+    defaultValues: profile || {}
   });
+
+  // Fetch user profile data
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      setLoading(true);
+      if (user) {
+        try {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+          
+          if (error) throw error;
+          
+          if (data) {
+            // Combine profile data with user email from auth
+            const profileData = {
+              ...data,
+              email: user.email
+            };
+            
+            setProfile(profileData);
+            form.reset(profileData);
+          }
+        } catch (error) {
+          console.error('Error fetching profile:', error);
+          toast({
+            title: "Error fetching profile",
+            description: "There was a problem fetching your profile data.",
+            variant: "destructive"
+          });
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchProfileData();
+  }, [user, form, toast]);
   
-  const onSubmit = (data) => {
-    setProfile(data);
-    setEditMode(false);
-    toast({
-      title: "Profile updated",
-      description: "Your profile information has been successfully updated."
-    });
+  const onSubmit = async (data: ProfileData) => {
+    try {
+      const { email, ...profileData } = data;
+      await updateProfile(profileData);
+      setProfile(data);
+      setEditMode(false);
+    } catch (error) {
+      console.error('Error updating profile:', error);
+    }
   };
   
-  const removeFavorite = (caregiverId) => {
+  const removeFavorite = (caregiverId: number) => {
     setFavorites(favorites.filter(fav => fav.id !== caregiverId));
     toast({
       title: "Removed from favorites",
       description: "Caregiver has been removed from your favorites."
     });
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <AuthNavbar />
+        <div className="flex-grow pt-24 pb-16 flex items-center justify-center">
+          <p>Loading profile data...</p>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
   
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar />
+      <AuthNavbar />
       
       <div className="flex-grow pt-24 pb-16">
         <div className="container mx-auto px-4">
@@ -143,8 +220,10 @@ const Profile = () => {
                   <div className="flex flex-col md:flex-row gap-8">
                     <div className="w-full md:w-1/3 flex flex-col items-center">
                       <Avatar className="w-32 h-32">
-                        <AvatarImage src={profile.profileImage} />
-                        <AvatarFallback>{profile.name.charAt(0)}</AvatarFallback>
+                        <AvatarImage src="" />
+                        <AvatarFallback>
+                          {profile?.first_name?.charAt(0)}{profile?.last_name?.charAt(0)}
+                        </AvatarFallback>
                       </Avatar>
                       
                       {!editMode && (
@@ -163,19 +242,35 @@ const Profile = () => {
                       {editMode ? (
                         <Form {...form}>
                           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                            <FormField
-                              control={form.control}
-                              name="name"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Full Name</FormLabel>
-                                  <FormControl>
-                                    <Input {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
+                            <div className="grid grid-cols-2 gap-4">
+                              <FormField
+                                control={form.control}
+                                name="first_name"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>First Name</FormLabel>
+                                    <FormControl>
+                                      <Input {...field} value={field.value || ''} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              
+                              <FormField
+                                control={form.control}
+                                name="last_name"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Last Name</FormLabel>
+                                    <FormControl>
+                                      <Input {...field} value={field.value || ''} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
                             
                             <FormField
                               control={form.control}
@@ -184,26 +279,42 @@ const Profile = () => {
                                 <FormItem>
                                   <FormLabel>Email</FormLabel>
                                   <FormControl>
-                                    <Input {...field} type="email" />
+                                    <Input {...field} type="email" value={field.value || ''} disabled />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
                               )}
                             />
                             
-                            <FormField
-                              control={form.control}
-                              name="phone"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Phone</FormLabel>
-                                  <FormControl>
-                                    <Input {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
+                            <div className="grid grid-cols-2 gap-4">
+                              <FormField
+                                control={form.control}
+                                name="phone_number"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Phone</FormLabel>
+                                    <FormControl>
+                                      <Input {...field} value={field.value || ''} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              
+                              <FormField
+                                control={form.control}
+                                name="emergency_contact"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Emergency Contact</FormLabel>
+                                    <FormControl>
+                                      <Input {...field} value={field.value || ''} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
                             
                             <FormField
                               control={form.control}
@@ -212,7 +323,138 @@ const Profile = () => {
                                 <FormItem>
                                   <FormLabel>Address</FormLabel>
                                   <FormControl>
-                                    <Input {...field} />
+                                    <Textarea {...field} value={field.value || ''} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            
+                            <div className="grid grid-cols-3 gap-4">
+                              <FormField
+                                control={form.control}
+                                name="gender"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Gender</FormLabel>
+                                    <Select 
+                                      value={field.value || ''} 
+                                      onValueChange={field.onChange}
+                                    >
+                                      <FormControl>
+                                        <SelectTrigger>
+                                          <SelectValue placeholder="Select gender" />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                        <SelectItem value="male">Male</SelectItem>
+                                        <SelectItem value="female">Female</SelectItem>
+                                        <SelectItem value="other">Other</SelectItem>
+                                        <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              
+                              <FormField
+                                control={form.control}
+                                name="height"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Height (cm)</FormLabel>
+                                    <FormControl>
+                                      <Input {...field} value={field.value || ''} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              
+                              <FormField
+                                control={form.control}
+                                name="weight"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Weight (kg)</FormLabel>
+                                    <FormControl>
+                                      <Input {...field} value={field.value || ''} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                            
+                            <div className="grid grid-cols-2 gap-4">
+                              <FormField
+                                control={form.control}
+                                name="blood_group"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Blood Group</FormLabel>
+                                    <Select 
+                                      value={field.value || ''} 
+                                      onValueChange={field.onChange}
+                                    >
+                                      <FormControl>
+                                        <SelectTrigger>
+                                          <SelectValue placeholder="Select blood group" />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                        <SelectItem value="A+">A+</SelectItem>
+                                        <SelectItem value="A-">A-</SelectItem>
+                                        <SelectItem value="B+">B+</SelectItem>
+                                        <SelectItem value="B-">B-</SelectItem>
+                                        <SelectItem value="AB+">AB+</SelectItem>
+                                        <SelectItem value="AB-">AB-</SelectItem>
+                                        <SelectItem value="O+">O+</SelectItem>
+                                        <SelectItem value="O-">O-</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              
+                              <FormField
+                                control={form.control}
+                                name="under_treatment"
+                                render={({ field }) => (
+                                  <FormItem className="space-y-3">
+                                    <FormLabel>Under Treatment?</FormLabel>
+                                    <FormControl>
+                                      <RadioGroup
+                                        onValueChange={(value) => field.onChange(value === 'true')}
+                                        defaultValue={field.value ? 'true' : 'false'}
+                                        className="flex flex-col space-y-1"
+                                      >
+                                        <div className="flex items-center space-x-2">
+                                          <RadioGroupItem value="true" id="r1" />
+                                          <Label htmlFor="r1">Yes</Label>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                          <RadioGroupItem value="false" id="r2" />
+                                          <Label htmlFor="r2">No</Label>
+                                        </div>
+                                      </RadioGroup>
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                            
+                            <FormField
+                              control={form.control}
+                              name="health_condition"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Health Conditions</FormLabel>
+                                  <FormControl>
+                                    <Textarea {...field} value={field.value || ''} />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
@@ -226,7 +468,10 @@ const Profile = () => {
                               <Button 
                                 type="button" 
                                 variant="outline" 
-                                onClick={() => setEditMode(false)}
+                                onClick={() => {
+                                  setEditMode(false);
+                                  form.reset(profile || {});
+                                }}
                               >
                                 Cancel
                               </Button>
@@ -236,44 +481,66 @@ const Profile = () => {
                       ) : (
                         <div className="space-y-6">
                           <div>
-                            <h2 className="text-2xl font-semibold mb-6">{profile.name}</h2>
+                            <h2 className="text-2xl font-semibold mb-6">
+                              {profile?.first_name} {profile?.last_name}
+                            </h2>
                             
                             <div className="space-y-4">
                               <div className="flex items-center gap-3">
                                 <Mail className="h-5 w-5 text-gray-500" />
-                                <span>{profile.email}</span>
+                                <span>{profile?.email}</span>
                               </div>
                               
                               <div className="flex items-center gap-3">
                                 <Phone className="h-5 w-5 text-gray-500" />
-                                <span>{profile.phone}</span>
+                                <span>{profile?.phone_number || 'Not provided'}</span>
                               </div>
                               
                               <div className="flex items-center gap-3">
                                 <MapPin className="h-5 w-5 text-gray-500" />
-                                <span>{profile.address}</span>
+                                <span>{profile?.address || 'Not provided'}</span>
                               </div>
                             </div>
                           </div>
                           
                           <div>
-                            <h3 className="text-lg font-medium mb-3">Account Information</h3>
+                            <h3 className="text-lg font-medium mb-3">Medical Information</h3>
                             
-                            <div className="space-y-2">
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Member Since</span>
-                                <span>January 2023</span>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <p className="text-muted-foreground">Gender</p>
+                                <p>{profile?.gender || 'Not provided'}</p>
                               </div>
                               
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Payment Method</span>
-                                <span>Visa ending in 4242</span>
+                              <div className="space-y-2">
+                                <p className="text-muted-foreground">Blood Group</p>
+                                <p>{profile?.blood_group || 'Not provided'}</p>
                               </div>
                               
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Plan</span>
-                                <Badge>Standard</Badge>
+                              <div className="space-y-2">
+                                <p className="text-muted-foreground">Height</p>
+                                <p>{profile?.height ? `${profile.height} cm` : 'Not provided'}</p>
                               </div>
+                              
+                              <div className="space-y-2">
+                                <p className="text-muted-foreground">Weight</p>
+                                <p>{profile?.weight ? `${profile.weight} kg` : 'Not provided'}</p>
+                              </div>
+                              
+                              <div className="space-y-2">
+                                <p className="text-muted-foreground">Under Treatment</p>
+                                <p>{profile?.under_treatment ? 'Yes' : 'No'}</p>
+                              </div>
+                              
+                              <div className="space-y-2">
+                                <p className="text-muted-foreground">Emergency Contact</p>
+                                <p>{profile?.emergency_contact || 'Not provided'}</p>
+                              </div>
+                            </div>
+                            
+                            <div className="mt-4">
+                              <p className="text-muted-foreground">Health Conditions</p>
+                              <p className="mt-1">{profile?.health_condition || 'None specified'}</p>
                             </div>
                           </div>
                         </div>

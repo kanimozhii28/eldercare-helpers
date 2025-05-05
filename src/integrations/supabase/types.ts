@@ -9,7 +9,63 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          address: string | null
+          age: string | null
+          blood_group: string | null
+          created_at: string | null
+          date_of_birth: string | null
+          emergency_contact: string | null
+          first_name: string | null
+          gender: string | null
+          health_condition: string | null
+          height: string | null
+          id: string
+          last_name: string | null
+          phone_number: string | null
+          under_treatment: boolean | null
+          updated_at: string | null
+          weight: string | null
+        }
+        Insert: {
+          address?: string | null
+          age?: string | null
+          blood_group?: string | null
+          created_at?: string | null
+          date_of_birth?: string | null
+          emergency_contact?: string | null
+          first_name?: string | null
+          gender?: string | null
+          health_condition?: string | null
+          height?: string | null
+          id: string
+          last_name?: string | null
+          phone_number?: string | null
+          under_treatment?: boolean | null
+          updated_at?: string | null
+          weight?: string | null
+        }
+        Update: {
+          address?: string | null
+          age?: string | null
+          blood_group?: string | null
+          created_at?: string | null
+          date_of_birth?: string | null
+          emergency_contact?: string | null
+          first_name?: string | null
+          gender?: string | null
+          health_condition?: string | null
+          height?: string | null
+          id?: string
+          last_name?: string | null
+          phone_number?: string | null
+          under_treatment?: boolean | null
+          updated_at?: string | null
+          weight?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

@@ -1,205 +1,269 @@
 
 import React from 'react';
-import Navbar from '../components/Navbar';
-import Hero from '../components/Hero';
-import CategorySection from '../components/CategorySection';
-import CaregiverSection from '../components/CaregiverCard';
-import VoiceAssistant from '../components/VoiceAssistant';
-import Footer from '../components/Footer';
+import DynamicNavbar from '@/components/DynamicNavbar';
+import Footer from '@/components/Footer';
+import Hero from '@/components/Hero';
+import CategorySection from '@/components/CategorySection';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { CheckCircle, Clock, Heart, Medal, ShieldCheck, Star } from 'lucide-react';
 
 const Index = () => {
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar />
+      <DynamicNavbar />
+      
       <main className="flex-grow">
+        {/* Hero Section */}
         <Hero />
-        <CategorySection />
-        <CaregiverSection />
         
-        {/* How It Works Section */}
-        <section className="py-16 md:py-24 bg-eldercare-warmGray">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16 animate-fade-in">
-              <span className="inline-block px-3 py-1 text-xs font-medium bg-eldercare-lightBlue text-eldercare-blue rounded-full mb-4">
-                Simple Process
-              </span>
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                How <span className="text-eldercare-blue">ElderCare</span> Works
-              </h2>
-              <p className="text-muted-foreground max-w-xl mx-auto">
-                Our streamlined process makes it easy to find and book the perfect caregiver for your loved one's needs.
+        {/* Categories Section */}
+        <CategorySection />
+        
+        {/* Features Section */}
+        <section className="py-16 bg-eldercare-blueGray">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold mb-4">Why Choose ElderCare</h2>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                Our platform provides the best care for your loved ones with trustworthy caregivers and comprehensive services.
               </p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {/* Step 1 */}
-              <div className="glass rounded-2xl p-6 text-center animate-fade-in">
-                <div className="w-16 h-16 rounded-full bg-eldercare-blue/10 text-eldercare-blue flex items-center justify-center mx-auto mb-6 text-xl font-bold">
-                  1
-                </div>
-                <h3 className="text-xl font-semibold mb-3">Browse Caregivers</h3>
-                <p className="text-muted-foreground">
-                  Search through our verified caregivers based on your specific needs and preferences.
-                </p>
-              </div>
+              <Card className="bg-white border-none shadow-md">
+                <CardContent className="pt-6">
+                  <div className="h-12 w-12 rounded-full bg-eldercare-lightBlue flex items-center justify-center mb-4 mx-auto">
+                    <ShieldCheck className="h-6 w-6 text-eldercare-blue" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-center mb-2">Vetted Professionals</h3>
+                  <p className="text-center text-muted-foreground">
+                    All our caregivers undergo thorough background checks and qualification verification to ensure your loved ones are in safe hands.
+                  </p>
+                </CardContent>
+              </Card>
               
-              {/* Step 2 */}
-              <div className="glass rounded-2xl p-6 text-center animate-fade-in" style={{ animationDelay: "100ms" }}>
-                <div className="w-16 h-16 rounded-full bg-eldercare-blue/10 text-eldercare-blue flex items-center justify-center mx-auto mb-6 text-xl font-bold">
-                  2
-                </div>
-                <h3 className="text-xl font-semibold mb-3">Book a Session</h3>
-                <p className="text-muted-foreground">
-                  Schedule care sessions based on your availability and service requirements.
-                </p>
-              </div>
+              <Card className="bg-white border-none shadow-md">
+                <CardContent className="pt-6">
+                  <div className="h-12 w-12 rounded-full bg-eldercare-lightBlue flex items-center justify-center mb-4 mx-auto">
+                    <Heart className="h-6 w-6 text-eldercare-blue" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-center mb-2">Personalized Care</h3>
+                  <p className="text-center text-muted-foreground">
+                    We offer customized care plans tailored to the specific needs and preferences of your elderly family members.
+                  </p>
+                </CardContent>
+              </Card>
               
-              {/* Step 3 */}
-              <div className="glass rounded-2xl p-6 text-center animate-fade-in" style={{ animationDelay: "200ms" }}>
-                <div className="w-16 h-16 rounded-full bg-eldercare-blue/10 text-eldercare-blue flex items-center justify-center mx-auto mb-6 text-xl font-bold">
-                  3
-                </div>
-                <h3 className="text-xl font-semibold mb-3">Receive Care</h3>
-                <p className="text-muted-foreground">
-                  Track your caregiver in real-time and enjoy peace of mind knowing your loved one is in good hands.
-                </p>
-              </div>
-            </div>
-            
-            <div className="mt-12 text-center">
-              <a 
-                href="/how-it-works" 
-                className="inline-flex items-center px-6 py-3 bg-eldercare-blue text-white rounded-full shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5 btn-press"
-              >
-                Learn More
-              </a>
+              <Card className="bg-white border-none shadow-md">
+                <CardContent className="pt-6">
+                  <div className="h-12 w-12 rounded-full bg-eldercare-lightBlue flex items-center justify-center mb-4 mx-auto">
+                    <Clock className="h-6 w-6 text-eldercare-blue" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-center mb-2">24/7 Support</h3>
+                  <p className="text-center text-muted-foreground">
+                    Our customer service team is available around the clock to address any concerns or emergencies.
+                  </p>
+                </CardContent>
+              </Card>
             </div>
           </div>
         </section>
         
         {/* Testimonials Section */}
-        <section className="py-16 md:py-24">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16 animate-fade-in">
-              <span className="inline-block px-3 py-1 text-xs font-medium bg-eldercare-lightBlue text-eldercare-blue rounded-full mb-4">
-                Testimonials
-              </span>
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                What Our <span className="text-eldercare-blue">Clients</span> Say
-              </h2>
-              <p className="text-muted-foreground max-w-xl mx-auto">
-                Hear from families who have experienced the difference of our personalized elder care services.
+        <section className="py-16">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold mb-4">What Our Clients Say</h2>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                We pride ourselves on exceptional service that makes a difference in the lives of seniors and their families.
               </p>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {/* Testimonial 1 */}
-              <div className="glass rounded-2xl p-6 animate-fade-in">
-                <div className="flex items-center mb-4">
-                  <img 
-                    src="https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1061&q=80" 
-                    alt="Jane Smith" 
-                    className="w-12 h-12 rounded-full object-cover mr-4"
-                  />
-                  <div>
-                    <h4 className="font-semibold">Jane Smith</h4>
-                    <p className="text-sm text-muted-foreground">Daughter of Client</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="flex items-center">
+                      <div className="h-12 w-12 rounded-full overflow-hidden mr-4">
+                        <img 
+                          src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3" 
+                          alt="Client"
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold">Robert Johnson</h4>
+                        <p className="text-sm text-muted-foreground">Son of client</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} className="h-4 w-4 text-yellow-400 fill-yellow-400" />
+                      ))}
+                    </div>
                   </div>
-                </div>
-                <p className="italic text-muted-foreground mb-4">
-                  "The caregivers from ElderCare have been a blessing for my mother. They are skilled, compassionate, and truly care about her wellbeing. The live tracking feature gives me peace of mind even when I'm far away."
-                </p>
-                <div className="flex text-eldercare-accent">
-                  {[...Array(5)].map((_, i) => (
-                    <svg key={i} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
-                      <path fillRule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" clipRule="evenodd" />
-                    </svg>
-                  ))}
-                </div>
-              </div>
+                  
+                  <p className="text-muted-foreground">
+                    "The caregiver ElderCare assigned to my father has been nothing short of amazing. Her patience, compassion, and professionalism have made a huge difference in my father's daily life and our peace of mind."
+                  </p>
+                </CardContent>
+              </Card>
               
-              {/* Testimonial 2 */}
-              <div className="glass rounded-2xl p-6 animate-fade-in" style={{ animationDelay: "100ms" }}>
-                <div className="flex items-center mb-4">
-                  <img 
-                    src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80" 
-                    alt="Robert Johnson" 
-                    className="w-12 h-12 rounded-full object-cover mr-4"
-                  />
-                  <div>
-                    <h4 className="font-semibold">Robert Johnson</h4>
-                    <p className="text-sm text-muted-foreground">Son of Client</p>
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="flex items-center">
+                      <div className="h-12 w-12 rounded-full overflow-hidden mr-4">
+                        <img 
+                          src="https://images.unsplash.com/photo-1580489944761-15a19d654956?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3" 
+                          alt="Client"
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold">Emily Thompson</h4>
+                        <p className="text-sm text-muted-foreground">Daughter of client</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} className="h-4 w-4 text-yellow-400 fill-yellow-400" />
+                      ))}
+                    </div>
                   </div>
-                </div>
-                <p className="italic text-muted-foreground mb-4">
-                  "Finding a reliable caregiver was challenging until we discovered ElderCare. Their vetting process is thorough, and the caregiver matching is excellent. My father looks forward to his caregiver's visits every week."
-                </p>
-                <div className="flex text-eldercare-accent">
-                  {[...Array(5)].map((_, i) => (
-                    <svg key={i} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
-                      <path fillRule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" clipRule="evenodd" />
-                    </svg>
-                  ))}
-                </div>
-              </div>
+                  
+                  <p className="text-muted-foreground">
+                    "Finding ElderCare has been a blessing. My mother needs specialized care for her Alzheimer's, and their caregiver is experienced, attentive, and has formed a wonderful bond with her."
+                  </p>
+                </CardContent>
+              </Card>
               
-              {/* Testimonial 3 */}
-              <div className="glass rounded-2xl p-6 animate-fade-in" style={{ animationDelay: "200ms" }}>
-                <div className="flex items-center mb-4">
-                  <img 
-                    src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2064&q=80" 
-                    alt="Maria Garcia" 
-                    className="w-12 h-12 rounded-full object-cover mr-4"
-                  />
-                  <div>
-                    <h4 className="font-semibold">Maria Garcia</h4>
-                    <p className="text-sm text-muted-foreground">Client</p>
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="flex items-center">
+                      <div className="h-12 w-12 rounded-full overflow-hidden mr-4">
+                        <img 
+                          src="https://images.unsplash.com/photo-1566492031773-4f4e44671857?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3" 
+                          alt="Client"
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold">Michael Lewis</h4>
+                        <p className="text-sm text-muted-foreground">Client</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex">
+                      {[...Array(4)].map((_, i) => (
+                        <Star key={i} className="h-4 w-4 text-yellow-400 fill-yellow-400" />
+                      ))}
+                      <Star className="h-4 w-4 text-gray-300" />
+                    </div>
                   </div>
-                </div>
-                <p className="italic text-muted-foreground mb-4">
-                  "As someone who values independence but needs occasional help, ElderCare has been perfect. I can book services when I need them, and the voice assistant feature makes it so easy to use, even for someone like me who isn't tech-savvy."
-                </p>
-                <div className="flex text-eldercare-accent">
-                  {[...Array(5)].map((_, i) => (
-                    <svg key={i} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={`w-5 h-5 ${i === 4 ? 'opacity-50' : ''}`}>
-                      <path fillRule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" clipRule="evenodd" />
-                    </svg>
-                  ))}
-                </div>
-              </div>
+                  
+                  <p className="text-muted-foreground">
+                    "As someone who values my independence but needs a little help with daily tasks, ElderCare has been the perfect solution. My caregiver respects my autonomy while providing the support I need."
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+            
+            <div className="text-center mt-12">
+              <Button className="bg-eldercare-blue hover:bg-blue-600">
+                Read More Reviews
+              </Button>
             </div>
           </div>
         </section>
         
         {/* CTA Section */}
-        <section className="py-16 md:py-24 bg-eldercare-blue relative overflow-hidden">
-          {/* Background decoration */}
-          <div className="absolute inset-0 opacity-10">
-            <div className="absolute top-0 right-0 w-96 h-96 rounded-full bg-white blur-3xl"></div>
-            <div className="absolute bottom-0 left-0 w-96 h-96 rounded-full bg-white blur-3xl"></div>
+        <section className="py-16 bg-eldercare-blue">
+          <div className="container mx-auto px-4 text-center">
+            <h2 className="text-3xl font-bold text-white mb-4">Ready to Find the Perfect Caregiver?</h2>
+            <p className="text-xl text-white/80 max-w-2xl mx-auto mb-8">
+              Join thousands of families who have found peace of mind with ElderCare's qualified and compassionate caregivers.
+            </p>
+            <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
+              <Button size="lg" className="bg-white text-eldercare-blue hover:bg-gray-100">
+                Find a Caregiver
+              </Button>
+              <Button size="lg" variant="outline" className="text-white border-white hover:bg-white/10">
+                Explore Services
+              </Button>
+            </div>
           </div>
-          
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
-            <div className="max-w-3xl mx-auto text-center text-white animate-fade-in">
-              <h2 className="text-3xl md:text-5xl font-bold mb-6">
-                Ready to Find the Perfect Caregiver?
-              </h2>
-              <p className="text-lg text-white/80 mb-8">
-                Join thousands of families who have found peace of mind with ElderCare's trusted caregiving services.
-              </p>
-              <div className="flex flex-col sm:flex-row justify-center gap-4">
-                <a 
-                  href="/caregivers" 
-                  className="px-8 py-3 bg-white text-eldercare-blue rounded-full shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5 btn-press font-medium"
-                >
-                  Find a Caregiver
-                </a>
-                <a 
-                  href="/contact" 
-                  className="px-8 py-3 bg-transparent text-white border border-white/30 rounded-full shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5 btn-press font-medium"
-                >
-                  Contact Us
-                </a>
+        </section>
+        
+        {/* Quality Service Section */}
+        <section className="py-16">
+          <div className="container mx-auto px-4">
+            <div className="flex flex-col md:flex-row items-center gap-12">
+              <div className="w-full md:w-1/2">
+                <img 
+                  src="https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3" 
+                  alt="Elderly care"
+                  className="rounded-lg shadow-lg w-full h-auto object-cover aspect-[4/3]"
+                />
+              </div>
+              
+              <div className="w-full md:w-1/2">
+                <h2 className="text-3xl font-bold mb-6">Our Quality Promise</h2>
+                <p className="text-lg text-muted-foreground mb-6">
+                  At ElderCare, we are committed to providing exceptional care that enhances the quality of life for seniors while giving families peace of mind.
+                </p>
+                
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <div className="mt-1">
+                      <CheckCircle className="h-5 w-5 text-eldercare-blue" />
+                    </div>
+                    <div>
+                      <p className="font-medium">Rigorous Caregiver Selection</p>
+                      <p className="text-sm text-muted-foreground">We select only the top 10% of applicants who pass our thorough screening process.</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <div className="mt-1">
+                      <CheckCircle className="h-5 w-5 text-eldercare-blue" />
+                    </div>
+                    <div>
+                      <p className="font-medium">Personalized Matching</p>
+                      <p className="text-sm text-muted-foreground">We carefully match caregivers with clients based on needs, preferences, and personalities.</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <div className="mt-1">
+                      <CheckCircle className="h-5 w-5 text-eldercare-blue" />
+                    </div>
+                    <div>
+                      <p className="font-medium">Continuous Training</p>
+                      <p className="text-sm text-muted-foreground">Our caregivers receive ongoing education and skill development to provide the best care.</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <div className="mt-1">
+                      <CheckCircle className="h-5 w-5 text-eldercare-blue" />
+                    </div>
+                    <div>
+                      <p className="font-medium">Quality Assurance</p>
+                      <p className="text-sm text-muted-foreground">Regular check-ins and assessments ensure consistently high-quality care.</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="mt-8">
+                  <Button className="bg-eldercare-blue hover:bg-blue-600">
+                    Learn About Our Standards
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
@@ -207,7 +271,6 @@ const Index = () => {
       </main>
       
       <Footer />
-      <VoiceAssistant />
     </div>
   );
 };
