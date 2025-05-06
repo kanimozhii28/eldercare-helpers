@@ -29,6 +29,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log("Auth state changed:", event, session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
         
@@ -42,6 +43,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log("Existing session check:", session?.user?.email);
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
@@ -52,9 +54,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string) => {
     try {
+      console.log("Attempting sign in for:", email);
       const { error, data } = await supabase.auth.signInWithPassword({ email, password });
       
       if (error) {
+        console.error("Sign in error:", error.message);
+        // Use speech synthesis to announce the error for visually impaired users
+        if (window.speechSynthesis) {
+          const utterance = new SpeechSynthesisUtterance(`Sign in failed: ${error.message}`);
+          window.speechSynthesis.speak(utterance);
+        }
+        
         toast({
           title: "Sign in failed",
           description: error.message,
@@ -64,12 +74,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       
       if (!data?.user) {
+        console.error("No user data returned after sign in");
+        // Use speech synthesis to announce the error for visually impaired users
+        if (window.speechSynthesis) {
+          const utterance = new SpeechSynthesisUtterance("Sign in failed: User information could not be retrieved.");
+          window.speechSynthesis.speak(utterance);
+        }
+        
         toast({
           title: "Sign in failed",
           description: "User information could not be retrieved.",
           variant: "destructive"
         });
         return;
+      }
+      
+      console.log("Sign in successful for:", data.user.email);
+      // Use speech synthesis to announce the success for visually impaired users
+      if (window.speechSynthesis) {
+        const utterance = new SpeechSynthesisUtterance("Sign in successful. Welcome back.");
+        window.speechSynthesis.speak(utterance);
       }
       
       toast({
@@ -80,6 +104,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       navigate('/home');
     } catch (error: any) {
       console.error('Error during sign in:', error);
+      // Use speech synthesis to announce the error for visually impaired users
+      if (window.speechSynthesis) {
+        const utterance = new SpeechSynthesisUtterance(`Sign in error: ${error?.message || "An unexpected error occurred"}`);
+        window.speechSynthesis.speak(utterance);
+      }
+      
       toast({
         title: "Sign in error",
         description: error?.message || "An unexpected error occurred during sign in.",
@@ -90,6 +120,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signUp = async (email: string, password: string, userData: any) => {
     try {
+      console.log("Attempting sign up for:", email);
       // Create user without email confirmation requirement
       const { error: signUpError, data } = await supabase.auth.signUp({ 
         email, 
@@ -99,11 +130,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             first_name: userData.first_name,
             last_name: userData.last_name
           },
-          emailRedirectTo: window.location.origin + '/login'
+          // Remove email redirect to disable email verification
         }
       });
 
       if (signUpError) {
+        console.error("Sign up error:", signUpError.message);
+        // Use speech synthesis to announce the error for visually impaired users
+        if (window.speechSynthesis) {
+          const utterance = new SpeechSynthesisUtterance(`Sign up failed: ${signUpError.message}`);
+          window.speechSynthesis.speak(utterance);
+        }
+        
         toast({
           title: "Sign up failed",
           description: signUpError.message,
@@ -114,6 +152,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Make sure we have a user before trying to update the profile
       if (data && data.user && data.user.id) {
+        console.log("User created successfully:", data.user.email);
+        
         // Update the profile with additional user data
         const { error: profileError } = await supabase
           .from('profiles')
@@ -135,20 +175,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (profileError) {
           console.error('Profile update error:', profileError);
+          // Use speech synthesis to announce the error for visually impaired users
+          if (window.speechSynthesis) {
+            const utterance = new SpeechSynthesisUtterance(`Profile update failed: ${profileError.message}`);
+            window.speechSynthesis.speak(utterance);
+          }
+          
           toast({
             title: "Profile update failed",
             description: profileError.message,
             variant: "destructive"
           });
         } else {
+          // Use speech synthesis to announce the success for visually impaired users
+          if (window.speechSynthesis) {
+            const utterance = new SpeechSynthesisUtterance("Account created successfully. Welcome to ElderCare.");
+            window.speechSynthesis.speak(utterance);
+          }
+          
           toast({
             title: "Account created",
             description: "Your account has been created successfully.",
           });
+          
+          // Sign in the user automatically after signup
+          await signIn(email, password);
         }
         
         return;
       } else {
+        console.error("No user data returned after sign up");
+        // Use speech synthesis to announce the error for visually impaired users
+        if (window.speechSynthesis) {
+          const utterance = new SpeechSynthesisUtterance("Sign up issue: Account created but user data is unavailable.");
+          window.speechSynthesis.speak(utterance);
+        }
+        
         toast({
           title: "Sign up issue",
           description: "Account created but user data is unavailable. Please contact support.",
@@ -157,6 +219,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     } catch (error: any) {
       console.error('Error during sign up:', error);
+      // Use speech synthesis to announce the error for visually impaired users
+      if (window.speechSynthesis) {
+        const utterance = new SpeechSynthesisUtterance(`Sign up error: ${error?.message || "An unexpected error occurred"}`);
+        window.speechSynthesis.speak(utterance);
+      }
+      
       toast({
         title: "Sign up error",
         description: error?.message || "An unexpected error occurred during sign up.",
@@ -172,12 +240,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       
       if (error) {
+        // Use speech synthesis to announce the error for visually impaired users
+        if (window.speechSynthesis) {
+          const utterance = new SpeechSynthesisUtterance(`Password reset failed: ${error.message}`);
+          window.speechSynthesis.speak(utterance);
+        }
+        
         toast({
           title: "Password reset failed",
           description: error.message,
           variant: "destructive"
         });
         return;
+      }
+      
+      // Use speech synthesis to announce the success for visually impaired users
+      if (window.speechSynthesis) {
+        const utterance = new SpeechSynthesisUtterance("Password reset email sent. Check your email for the password reset link.");
+        window.speechSynthesis.speak(utterance);
       }
       
       toast({
@@ -188,6 +268,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       navigate('/login');
     } catch (error: any) {
       console.error('Error during password reset:', error);
+      // Use speech synthesis to announce the error for visually impaired users
+      if (window.speechSynthesis) {
+        const utterance = new SpeechSynthesisUtterance(`Password reset error: ${error?.message || "An unexpected error occurred"}`);
+        window.speechSynthesis.speak(utterance);
+      }
+      
       toast({
         title: "Password reset error",
         description: error?.message || "An unexpected error occurred",
@@ -199,6 +285,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signOut = async () => {
     try {
       await supabase.auth.signOut();
+      // Use speech synthesis to announce the sign out for visually impaired users
+      if (window.speechSynthesis) {
+        const utterance = new SpeechSynthesisUtterance("You have been successfully signed out.");
+        window.speechSynthesis.speak(utterance);
+      }
+      
       toast({
         title: "Signed out",
         description: "You have been successfully signed out."
@@ -206,6 +298,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       navigate('/login');
     } catch (error: any) {
       console.error('Error during sign out:', error);
+      // Use speech synthesis to announce the error for visually impaired users
+      if (window.speechSynthesis) {
+        const utterance = new SpeechSynthesisUtterance("Sign out failed. An error occurred while signing out.");
+        window.speechSynthesis.speak(utterance);
+      }
+      
       toast({
         title: "Sign out failed",
         description: "An error occurred while signing out."
@@ -216,6 +314,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateProfile = async (data: any) => {
     try {
       if (!user || !user.id) {
+        // Use speech synthesis to announce the error for visually impaired users
+        if (window.speechSynthesis) {
+          const utterance = new SpeechSynthesisUtterance("Update failed. User not authenticated.");
+          window.speechSynthesis.speak(utterance);
+        }
+        
         toast({
           title: "Update failed",
           description: "User not authenticated",
@@ -230,6 +334,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .eq('id', user.id);
 
       if (error) {
+        // Use speech synthesis to announce the error for visually impaired users
+        if (window.speechSynthesis) {
+          const utterance = new SpeechSynthesisUtterance(`Profile update failed: ${error.message}`);
+          window.speechSynthesis.speak(utterance);
+        }
+        
         toast({
           title: "Profile update failed",
           description: error.message,
@@ -238,12 +348,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw error;
       }
 
+      // Use speech synthesis to announce the success for visually impaired users
+      if (window.speechSynthesis) {
+        const utterance = new SpeechSynthesisUtterance("Profile updated successfully.");
+        window.speechSynthesis.speak(utterance);
+      }
+      
       toast({
         title: "Profile updated",
         description: "Your profile has been successfully updated."
       });
     } catch (error: any) {
       console.error('Error updating profile:', error);
+      // Use speech synthesis to announce the error for visually impaired users
+      if (window.speechSynthesis) {
+        const utterance = new SpeechSynthesisUtterance(`Update error: ${error?.message || "An unexpected error occurred"}`);
+        window.speechSynthesis.speak(utterance);
+      }
+      
       toast({
         title: "Update error",
         description: error?.message || "An unexpected error occurred",

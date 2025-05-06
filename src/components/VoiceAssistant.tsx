@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { Mic, X, MessageSquare, Loader, MicOff, Command, Info, HelpCircle, Home } from 'lucide-react';
+import { Mic, X, MessageSquare, Loader, MicOff, Command, Info, HelpCircle, Home, VolumeUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -11,14 +10,14 @@ const VoiceAssistant = () => {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [response, setResponse] = useState('');
-  const [chatHistory, setChatHistory] = useState([]);
+  const [chatHistory, setChatHistory] = useState<any[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showCommandsHelp, setShowCommandsHelp] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   
   // Create a recognition object if the browser supports it
-  const [recognition, setRecognition] = useState(null);
+  const [recognition, setRecognition] = useState<any>(null);
 
   // Suggested commands and their descriptions for better user guidance
   const suggestedCommands = [
@@ -29,7 +28,9 @@ const VoiceAssistant = () => {
     { command: "Track my booking", description: "Go to live tracking page" },
     { command: "Show payment options", description: "View available payment methods" },
     { command: "I need overnight care", description: "Find overnight care specialists" },
-    { command: "How does rating work?", description: "Learn about the review system" }
+    { command: "How does rating work?", description: "Learn about the review system" },
+    { command: "I need help logging in", description: "Get assistance with login issues" },
+    { command: "Forgot my password", description: "Reset your password" }
   ];
 
   // Define caregiver categories with more detailed descriptions
@@ -114,14 +115,14 @@ const VoiceAssistant = () => {
         recognitionInstance.interimResults = false;
         recognitionInstance.lang = 'en-US';
         
-        recognitionInstance.onresult = (event) => {
+        recognitionInstance.onresult = (event: any) => {
           const current = event.resultIndex;
           const userTranscript = event.results[current][0].transcript;
           setTranscript(userTranscript);
           handleQueryResponse(userTranscript);
         };
         
-        recognitionInstance.onerror = (event) => {
+        recognitionInstance.onerror = (event: any) => {
           console.error('Speech recognition error', event.error);
           setIsListening(false);
           toast({
@@ -129,6 +130,7 @@ const VoiceAssistant = () => {
             description: "Please try again or type your question.",
             variant: "destructive"
           });
+          speak("Speech recognition error. Please try again or type your question.");
         };
         
         recognitionInstance.onend = () => {
@@ -140,6 +142,19 @@ const VoiceAssistant = () => {
     }
   }, [toast]);
 
+  // Function to use speech synthesis
+  const speak = (text: string) => {
+    if (window.speechSynthesis) {
+      // Cancel any current speech
+      window.speechSynthesis.cancel();
+      
+      const utterance = new SpeechSynthesisUtterance(text);
+      // Set a slightly slower rate for better comprehension
+      utterance.rate = 0.9;
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
   const toggleAssistant = () => {
     setIsOpen(!isOpen);
     if (!isOpen) {
@@ -150,10 +165,16 @@ const VoiceAssistant = () => {
       // Show commands help when opening
       setShowCommandsHelp(true);
       
+      // Announce opening for screen reader users
+      speak("Voice assistant activated. You can speak or type your question.");
+      
       // Auto-hide commands help after 5 seconds
       setTimeout(() => {
         setShowCommandsHelp(false);
       }, 5000);
+    } else {
+      // Announce closing for screen reader users
+      speak("Voice assistant closed.");
     }
   };
 
@@ -165,15 +186,18 @@ const VoiceAssistant = () => {
         description: "Your browser doesn't support speech recognition. Please type your question instead.",
         variant: "destructive"
       });
+      speak("Speech recognition not supported by your browser. Please type your question instead.");
       return;
     }
     
     try {
       setIsListening(true);
+      speak("Listening. Please speak now.");
       recognition.start();
     } catch (error) {
       console.error('Speech recognition error:', error);
       setIsListening(false);
+      speak("There was an error starting speech recognition. Please try again.");
     }
   };
 
@@ -181,10 +205,11 @@ const VoiceAssistant = () => {
     if (recognition && isListening) {
       recognition.stop();
       setIsListening(false);
+      speak("Stopped listening.");
     }
   };
 
-  const findCategoryMatch = (query) => {
+  const findCategoryMatch = (query: string) => {
     query = query.toLowerCase();
     
     // Check for direct category mentions
@@ -220,7 +245,7 @@ const VoiceAssistant = () => {
     return null;
   };
 
-  const handleQueryResponse = (query) => {
+  const handleQueryResponse = (query: string) => {
     // Add user's query to chat history
     setChatHistory(prev => [...prev, { type: 'user', text: query }]);
     
@@ -229,12 +254,46 @@ const VoiceAssistant = () => {
     // Hide commands help when user starts a conversation
     setShowCommandsHelp(false);
     
+    // Check for authentication-related queries
+    if (query.toLowerCase().includes("login") || 
+        query.toLowerCase().includes("sign in") || 
+        query.toLowerCase().includes("password") ||
+        query.toLowerCase().includes("can't log in") ||
+        query.toLowerCase().includes("forgot password") ||
+        query.toLowerCase().includes("invalid credentials")) {
+      
+      setTimeout(() => {
+        setIsProcessing(false);
+        
+        const botResponse = "I can help you with login issues. If you're having trouble signing in, make sure your email and password are correct. You can also try creating a new account or navigating to the login page.";
+        
+        const actions = [
+          { label: 'Go to Login Page', path: '/login' },
+          { label: 'Create Account', path: '/login' }
+        ];
+        
+        setChatHistory(prev => [
+          ...prev, 
+          { 
+            type: 'assistant', 
+            text: botResponse,
+            actions: actions
+          }
+        ]);
+        
+        setResponse(botResponse);
+        speak(botResponse);
+      }, 1000);
+      
+      return;
+    }
+    
     // Simulate AI processing
     setTimeout(() => {
       setIsProcessing(false);
       
       let botResponse = "";
-      let actions = [];
+      let actions: any[] = [];
       
       // Check for category matches first
       const categoryMatch = findCategoryMatch(query);
@@ -333,10 +392,11 @@ const VoiceAssistant = () => {
       ]);
       
       setResponse(botResponse);
+      speak(botResponse);
     }, 1000);
   };
 
-  const handleTextSubmit = (e) => {
+  const handleTextSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!transcript.trim()) return;
     
@@ -344,15 +404,22 @@ const VoiceAssistant = () => {
     setTranscript('');
   };
 
-  const handleActionClick = (path) => {
+  const handleActionClick = (path: string) => {
     setIsOpen(false);
+    speak(`Navigating to ${path.replace('/', '').replace(/-/g, ' ')}`);
     navigate(path);
   };
 
-  const handleCommandClick = (command) => {
+  const handleCommandClick = (command: string) => {
     setTranscript(command);
+    speak(`Command selected: ${command}. Processing your request.`);
     handleQueryResponse(command);
   };
+
+  // Ensure voice assistant is accessible
+  const assistantAriaLabel = isOpen 
+    ? "Voice assistant panel. You can speak or type your questions about elder care services."
+    : "Open voice assistant";
 
   return (
     <>
@@ -378,6 +445,9 @@ const VoiceAssistant = () => {
             exit={{ opacity: 0, y: 20, scale: 0.9 }}
             transition={{ duration: 0.3 }}
             className="fixed bottom-24 right-6 w-full max-w-md z-50 glass rounded-2xl shadow-xl overflow-hidden"
+            role="dialog"
+            aria-modal="true"
+            aria-label={assistantAriaLabel}
           >
             <div className="p-4 bg-eldercare-blue text-white">
               <div className="flex items-center justify-between">
@@ -386,7 +456,14 @@ const VoiceAssistant = () => {
                 </h3>
                 <div className="flex items-center">
                   <button
-                    onClick={() => setShowCommandsHelp(!showCommandsHelp)}
+                    onClick={() => {
+                      setShowCommandsHelp(!showCommandsHelp);
+                      if (!showCommandsHelp) {
+                        speak("Commands help panel opened. Here are some things you can ask me.");
+                      } else {
+                        speak("Commands help panel closed.");
+                      }
+                    }}
                     className="p-1 rounded-full hover:bg-white/10 transition-colors mr-2"
                     aria-label="Show commands help"
                   >
@@ -424,6 +501,7 @@ const VoiceAssistant = () => {
                         key={index}
                         className="text-left p-2 hover:bg-blue-100 rounded-md text-sm transition-colors flex justify-between items-center"
                         onClick={() => handleCommandClick(item.command)}
+                        aria-label={`${item.command} - ${item.description}`}
                       >
                         <span className="font-medium">{item.command}</span>
                         <span className="text-xs text-gray-500">{item.description}</span>
@@ -434,7 +512,10 @@ const VoiceAssistant = () => {
                     variant="link" 
                     size="sm" 
                     className="text-eldercare-blue p-0 h-auto mt-2"
-                    onClick={() => setShowCommandsHelp(false)}
+                    onClick={() => {
+                      setShowCommandsHelp(false);
+                      speak("Commands help panel closed.");
+                    }}
                   >
                     Hide suggestions
                   </Button>
@@ -470,13 +551,27 @@ const VoiceAssistant = () => {
                         }`}>
                           <p className="text-sm">{message.text}</p>
                           
+                          {message.type === 'assistant' && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 p-2 mt-1"
+                              onClick={() => speak(message.text)}
+                              aria-label="Read response aloud"
+                            >
+                              <VolumeUp className="h-4 w-4 mr-1" />
+                              <span className="text-xs">Read Aloud</span>
+                            </Button>
+                          )}
+                          
                           {message.actions && (
                             <div className="flex flex-wrap gap-2 mt-3">
-                              {message.actions.map((action, actionIndex) => (
+                              {message.actions.map((action: any, actionIndex: number) => (
                                 <button
                                   key={actionIndex}
                                   onClick={() => handleActionClick(action.path)}
                                   className="px-3 py-1 text-xs bg-eldercare-blue text-white rounded-full hover:bg-blue-600 transition-colors shadow-sm"
+                                  aria-label={action.label}
                                 >
                                   {action.label}
                                 </button>
@@ -530,6 +625,7 @@ const VoiceAssistant = () => {
                         key={index}
                         className="text-left p-2 border border-gray-200 hover:border-eldercare-blue hover:bg-eldercare-lightBlue rounded-md text-sm transition-colors"
                         onClick={() => handleCommandClick(item.command)}
+                        aria-label={`${item.command} - ${item.description}`}
                       >
                         {item.command}
                       </button>
@@ -542,6 +638,15 @@ const VoiceAssistant = () => {
                       className="mt-2"
                     >
                       <Home className="h-4 w-4 mr-2" /> Go to Home
+                    </Button>
+                    
+                    <Button
+                      variant="link"
+                      size="sm"
+                      className="mt-2"
+                      onClick={() => speak("Try saying: Find a cooking caregiver, How do I book a caregiver, or I need help with medical care. You can also type your question in the input box below.")}
+                    >
+                      <VolumeUp className="h-4 w-4 mr-1" /> Read Options Aloud
                     </Button>
                   </div>
                 </motion.div>
@@ -556,6 +661,7 @@ const VoiceAssistant = () => {
                   className="flex-1 px-4 py-2 rounded-full bg-muted border border-border focus:outline-none focus:ring-2 focus:ring-eldercare-blue/20"
                   value={transcript}
                   onChange={(e) => setTranscript(e.target.value)}
+                  aria-label="Type your question"
                 />
                 {isListening ? (
                   <motion.button
@@ -564,6 +670,7 @@ const VoiceAssistant = () => {
                     className="p-3 rounded-full btn-press bg-red-500 text-white"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
+                    aria-label="Stop listening"
                   >
                     <MicOff className="w-5 h-5" />
                   </motion.button>
@@ -574,11 +681,15 @@ const VoiceAssistant = () => {
                     className="p-3 rounded-full btn-press bg-eldercare-blue text-white"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
+                    aria-label="Start listening"
                   >
                     <Mic className="w-5 h-5" />
                   </motion.button>
                 )}
               </form>
+              <p className="text-xs text-gray-500 mt-2 text-center">
+                Press the microphone button to speak, or type your question and press Enter.
+              </p>
             </div>
           </motion.div>
         )}
