@@ -55,20 +55,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { error, data } = await supabase.auth.signInWithPassword({ email, password });
       
       if (error) {
-        // Special handling for different error types
-        if (error.message.includes("Email not confirmed")) {
-          toast({
-            title: "Email not confirmed",
-            description: "Please check your email inbox and confirm your email address before signing in.",
-            variant: "destructive"
-          });
-        } else {
-          toast({
-            title: "Sign in failed",
-            description: error.message,
-            variant: "destructive"
-          });
-        }
+        toast({
+          title: "Sign in failed",
+          description: error.message,
+          variant: "destructive"
+        });
         return;
       }
       
@@ -99,6 +90,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signUp = async (email: string, password: string, userData: any) => {
     try {
+      // Create user without email confirmation requirement
       const { error: signUpError, data } = await supabase.auth.signUp({ 
         email, 
         password,
@@ -121,7 +113,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       // Make sure we have a user before trying to update the profile
-      if (data.user) {
+      if (data && data.user && data.user.id) {
         // Update the profile with additional user data
         const { error: profileError } = await supabase
           .from('profiles')
@@ -142,6 +134,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           .eq('id', data.user.id);
 
         if (profileError) {
+          console.error('Profile update error:', profileError);
           toast({
             title: "Profile update failed",
             description: profileError.message,
@@ -150,9 +143,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } else {
           toast({
             title: "Account created",
-            description: "Please check your email for a confirmation link to complete your registration.",
+            description: "Your account has been created successfully.",
           });
         }
+        
+        return;
       } else {
         toast({
           title: "Sign up issue",
@@ -160,8 +155,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           variant: "destructive"
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error during sign up:', error);
+      toast({
+        title: "Sign up error",
+        description: error?.message || "An unexpected error occurred during sign up.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -204,7 +204,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         description: "You have been successfully signed out."
       });
       navigate('/login');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error during sign out:', error);
       toast({
         title: "Sign out failed",
@@ -215,10 +215,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateProfile = async (data: any) => {
     try {
+      if (!user || !user.id) {
+        toast({
+          title: "Update failed",
+          description: "User not authenticated",
+          variant: "destructive"
+        });
+        return;
+      }
+      
       const { error } = await supabase
         .from('profiles')
         .update(data)
-        .eq('id', user?.id);
+        .eq('id', user.id);
 
       if (error) {
         toast({
@@ -233,8 +242,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         title: "Profile updated",
         description: "Your profile has been successfully updated."
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating profile:', error);
+      toast({
+        title: "Update error",
+        description: error?.message || "An unexpected error occurred",
+        variant: "destructive"
+      });
     }
   };
 

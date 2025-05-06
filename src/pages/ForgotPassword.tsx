@@ -23,68 +23,48 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row">
-      {/* Left Panel (Form) */}
-      <div className="w-full md:w-1/2 p-4 md:p-8 flex flex-col justify-center">
-        <div className="max-w-md mx-auto w-full">
-          <div className="mb-8">
-            <span className="text-2xl font-semibold bg-gradient-to-r from-eldercare-blue to-blue-600 bg-clip-text text-transparent">ElderCare</span>
-            <h1 className="text-2xl md:text-3xl font-bold mt-6 mb-2">Reset Password</h1>
-            <p className="text-muted-foreground">Enter your email address and we'll send you a link to reset your password</p>
+    <div className="min-h-screen flex flex-col justify-center items-center p-4">
+      <div className="max-w-md w-full bg-white p-8 rounded-lg shadow-md">
+        <div className="mb-8">
+          <span className="text-2xl font-semibold bg-gradient-to-r from-eldercare-blue to-blue-600 bg-clip-text text-transparent">ElderCare</span>
+          <h1 className="text-2xl md:text-3xl font-bold mt-6 mb-2">Reset Password</h1>
+          <p className="text-muted-foreground">Enter your email address to reset your password</p>
+        </div>
+        
+        <form onSubmit={handleResetPassword} className="space-y-4">
+          <div className="space-y-2">
+            <label htmlFor="email" className="text-sm font-medium">Email</label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <UserIcon className="h-5 w-5 text-gray-400" />
+              </div>
+              <Input 
+                id="email" 
+                type="email" 
+                placeholder="your@email.com"
+                className="pl-10" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
           </div>
           
-          <form onSubmit={handleResetPassword} className="space-y-4">
-            <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Email</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <UserIcon className="h-5 w-5 text-gray-400" />
-                </div>
-                <Input 
-                  id="email" 
-                  type="email" 
-                  placeholder="your@email.com"
-                  className="pl-10" 
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </div>
-            </div>
-            
-            <Button 
-              type="submit" 
-              className="w-full bg-eldercare-blue hover:bg-blue-600"
-              disabled={isLoading}
-            >
-              {isLoading ? "Sending..." : "Send Reset Link"}
-            </Button>
-            
-            <div className="text-center">
-              <Link to="/login" className="text-sm text-eldercare-blue hover:underline flex items-center justify-center">
-                <ArrowLeft className="h-4 w-4 mr-1" />
-                Back to login
-              </Link>
-            </div>
-          </form>
-        </div>
-      </div>
-      
-      {/* Right Panel (Image) */}
-      <div className="hidden md:block md:w-1/2 bg-eldercare-blueGray">
-        <div className="h-full flex items-center justify-center p-8">
-          <div className="max-w-md">
-            <div className="bg-white p-8 rounded-xl shadow-md">
-              <h3 className="text-xl font-semibold mb-4">Password Recovery</h3>
-              <p className="text-gray-600 mb-4">
-                We'll send you an email with a secure link to reset your password. Make sure to check your spam folder if you don't see it in your inbox.
-              </p>
-              <p className="text-gray-600">
-                For security reasons, the link will expire after 24 hours.
-              </p>
-            </div>
+          <Button 
+            type="submit" 
+            className="w-full bg-eldercare-blue hover:bg-blue-600"
+            disabled={isLoading}
+          >
+            {isLoading ? "Sending..." : "Send Reset Link"}
+          </Button>
+          
+          <div className="text-center">
+            <Link to="/login" className="text-sm text-eldercare-blue hover:underline flex items-center justify-center">
+              <ArrowLeft className="h-4 w-4 mr-1" />
+              Back to login
+            </Link>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   );
