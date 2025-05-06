@@ -19,6 +19,7 @@ import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/contexts/AuthContext';
+import { SpeakButton } from '@/components/SpeechSynthesis';
 
 const Login = () => {
   const { user, loading, signIn, signUp } = useAuth();
@@ -40,6 +41,9 @@ const Login = () => {
   const [bloodGroup, setBloodGroup] = useState('');
   const [address, setAddress] = useState('');
   const [activeTab, setActiveTab] = useState('signin');
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [formError, setFormError] = useState('');
   
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -73,38 +77,97 @@ const Login = () => {
     }
   }, [activeTab]);
 
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validatePassword = (password: string): boolean => {
+    return password.length >= 6;
+  };
+
+  const validateForm = () => {
+    let isValid = true;
+    setEmailError('');
+    setPasswordError('');
+    setFormError('');
+
+    if (!email) {
+      setEmailError('Email is required');
+      isValid = false;
+    } else if (!validateEmail(email)) {
+      setEmailError('Invalid email format');
+      isValid = false;
+    }
+
+    if (!password) {
+      setPasswordError('Password is required');
+      isValid = false;
+    } else if (!validatePassword(password)) {
+      setPasswordError('Password must be at least 6 characters');
+      isValid = false;
+    }
+
+    return isValid;
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      speak("There are errors in your form. Please correct them before submitting.");
+      return;
+    }
+    
     setIsLoading(true);
+    setFormError('');
     
     try {
       console.log("Login attempt with:", email);
       await signIn(email, password);
     } catch (error) {
       console.error("Login error caught in component:", error);
+      setFormError('Sign in failed. Please check your credentials and try again.');
+      speak("Sign in failed. Please check your credentials and try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
+  const validateSignupForm = () => {
+    let isValid = true;
+    setFormError('');
+
+    // Validate required fields
+    if (!firstName || !lastName || !email || !password || !dob || !phoneNumber || 
+        !emergencyContact || !gender || !bloodGroup || !address) {
+      setFormError('Please fill in all required fields marked with an asterisk.');
+      speak("Missing required fields. Please fill in all required fields marked with an asterisk.");
+      isValid = false;
+    } else if (!validateEmail(email)) {
+      setFormError('Please enter a valid email address');
+      speak("Please enter a valid email address");
+      isValid = false;
+    } else if (!validatePassword(password)) {
+      setFormError('Password must be at least 6 characters long');
+      speak("Password must be at least 6 characters long");
+      isValid = false;
+    }
+
+    return isValid;
+  };
+
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateSignupForm()) {
+      return;
+    }
+    
     setIsLoading(true);
+    setFormError('');
     
     try {
-      // Validate required fields
-      if (!firstName || !lastName || !email || !password || !dob || !phoneNumber || 
-          !emergencyContact || !gender || !bloodGroup || !address) {
-        speak("Missing required fields. Please fill in all required fields marked with an asterisk.");
-        toast({
-          title: "Missing required fields",
-          description: "Please fill in all required fields.",
-          variant: "destructive",
-        });
-        setIsLoading(false);
-        return;
-      }
-      
       const userData = {
         first_name: firstName,
         last_name: lastName,
@@ -123,8 +186,10 @@ const Login = () => {
 
       console.log("Sign up attempt with:", email);
       await signUp(email, password, userData);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error during signup:', error);
+      setFormError(error.message || 'Error during signup. Please try again.');
+      speak("Error during signup. " + (error.message || 'Please try again.'));
     } finally {
       setIsLoading(false);
     }
@@ -189,6 +254,13 @@ const Login = () => {
             
             <TabsContent value="signin">
               <form onSubmit={handleLogin}>
+                {formError && (
+                  <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-md">
+                    <p className="text-sm font-medium">{formError}</p>
+                    <SpeakButton text={formError} label="Read Error" variant="ghost" size="sm" iconOnly={false} className="mt-1" />
+                  </div>
+                )}
+                
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
@@ -200,12 +272,17 @@ const Login = () => {
                         id="email" 
                         type="email" 
                         placeholder="your@email.com"
-                        className="pl-10" 
+                        className={`pl-10 ${emailError ? 'border-red-500' : ''}`}
                         value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        onChange={(e) => {
+                          setEmail(e.target.value);
+                          setEmailError('');
+                        }}
                         onFocus={() => handleFieldFocus("Email", email)}
                         required
                         aria-label="Email address"
+                        aria-invalid={!!emailError}
+                        aria-describedby={emailError ? "email-error" : undefined}
                       />
                       <Button
                         type="button"
@@ -219,11 +296,17 @@ const Login = () => {
                         <span className="sr-only">Read aloud</span>
                       </Button>
                     </div>
+                    {emailError && (
+                      <p id="email-error" className="text-sm text-red-500 mt-1">{emailError}</p>
+                    )}
                   </div>
                   
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <Label htmlFor="password">Password</Label>
+                      <Link to="/forgot-password" className="text-sm text-blue-600 hover:underline">
+                        Forgot password?
+                      </Link>
                     </div>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -233,12 +316,17 @@ const Login = () => {
                         id="password" 
                         type={showPassword ? "text" : "password"} 
                         placeholder="••••••••"
-                        className="pl-10" 
+                        className={`pl-10 ${passwordError ? 'border-red-500' : ''}`}
                         value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        onChange={(e) => {
+                          setPassword(e.target.value);
+                          setPasswordError('');
+                        }}
                         onFocus={() => handleFieldFocus("Password")}
                         required
                         aria-label="Password"
+                        aria-invalid={!!passwordError}
+                        aria-describedby={passwordError ? "password-error" : undefined}
                       />
                       <div className="absolute inset-y-0 right-0 flex items-center">
                         <button 
@@ -255,6 +343,9 @@ const Login = () => {
                         </button>
                       </div>
                     </div>
+                    {passwordError && (
+                      <p id="password-error" className="text-sm text-red-500 mt-1">{passwordError}</p>
+                    )}
                   </div>
                   
                   <Button 
@@ -272,6 +363,13 @@ const Login = () => {
             
             <TabsContent value="signup">
               <form onSubmit={handleSignup} className="space-y-6">
+                {formError && (
+                  <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-md">
+                    <p className="text-sm font-medium">{formError}</p>
+                    <SpeakButton text={formError} label="Read Error" variant="ghost" size="sm" iconOnly={false} className="mt-1" />
+                  </div>
+                )}
+                
                 {/* Personal Information Section */}
                 <div>
                   <h3 className="text-md font-semibold mb-3">Personal Information</h3>
