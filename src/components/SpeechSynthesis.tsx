@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { VolumeUp } from 'lucide-react';
+import { Volume } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface SpeechSynthesisProps {
@@ -50,7 +50,7 @@ export const SpeakButton: React.FC<SpeechSynthesisProps> = ({
       onClick={handleClick}
       aria-label={`Read ${label} aloud`}
     >
-      <VolumeUp className="h-4 w-4" />
+      <Volume className="h-4 w-4" />
       {!iconOnly && <span className={iconOnly ? "sr-only" : "ml-1"}>{label}</span>}
     </Button>
   );

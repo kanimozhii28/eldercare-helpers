@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, UserIcon, KeyIcon, Calendar, Phone, Heart, Ruler, Weight, Droplet, VolumeUp } from 'lucide-react';
+import { Eye, EyeOff, UserIcon, KeyIcon, Calendar, Phone, Heart, Ruler, Weight, Droplet, Volume } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -172,7 +171,7 @@ const Login = () => {
               onClick={() => announceInfo("ElderCare platform login page. Here you can sign in with your existing account or create a new one to access elder care services.")}
               aria-label="Read page description aloud"
             >
-              <VolumeUp size={16} />
+              <Volume size={16} />
               <span className="sr-only">Read aloud</span>
             </Button>
           </div>
@@ -216,7 +215,7 @@ const Login = () => {
                         onClick={() => speak(email ? `Email entered: ${email}` : "Email field is empty")}
                         aria-label="Read email aloud"
                       >
-                        <VolumeUp className="h-4 w-4" />
+                        <Volume className="h-4 w-4" />
                         <span className="sr-only">Read aloud</span>
                       </Button>
                     </div>
@@ -299,7 +298,7 @@ const Login = () => {
                             onClick={() => speak(firstName ? `First name entered: ${firstName}` : "First name field is empty")}
                             aria-label="Read first name aloud"
                           >
-                            <VolumeUp className="h-4 w-4" />
+                            <Volume className="h-4 w-4" />
                             <span className="sr-only">Read aloud</span>
                           </Button>
                         </div>
@@ -324,7 +323,7 @@ const Login = () => {
                             onClick={() => speak(lastName ? `Last name entered: ${lastName}` : "Last name field is empty")}
                             aria-label="Read last name aloud"
                           >
-                            <VolumeUp className="h-4 w-4" />
+                            <Volume className="h-4 w-4" />
                             <span className="sr-only">Read aloud</span>
                           </Button>
                         </div>
@@ -357,7 +356,7 @@ const Login = () => {
                           onClick={() => speak(email ? `Email entered: ${email}` : "Email field is empty")}
                           aria-label="Read email aloud"
                         >
-                          <VolumeUp className="h-4 w-4" />
+                          <Volume className="h-4 w-4" />
                           <span className="sr-only">Read aloud</span>
                         </Button>
                       </div>
@@ -471,7 +470,7 @@ const Login = () => {
                             onClick={() => speak(phoneNumber ? `Phone number entered: ${phoneNumber}` : "Phone number field is empty")}
                             aria-label="Read phone number aloud"
                           >
-                            <VolumeUp className="h-4 w-4" />
+                            <Volume className="h-4 w-4" />
                             <span className="sr-only">Read aloud</span>
                           </Button>
                         </div>
@@ -501,7 +500,7 @@ const Login = () => {
                             onClick={() => speak(emergencyContact ? `Emergency contact entered: ${emergencyContact}` : "Emergency contact field is empty")}
                             aria-label="Read emergency contact aloud"
                           >
-                            <VolumeUp className="h-4 w-4" />
+                            <Volume className="h-4 w-4" />
                             <span className="sr-only">Read aloud</span>
                           </Button>
                         </div>
@@ -530,7 +529,7 @@ const Login = () => {
                           onClick={() => speak(address ? `Address entered: ${address}` : "Address field is empty")}
                           aria-label="Read address aloud"
                         >
-                          <VolumeUp className="h-4 w-4" />
+                          <Volume className="h-4 w-4" />
                           <span className="sr-only">Read aloud</span>
                         </Button>
                       </div>
@@ -566,7 +565,7 @@ const Login = () => {
                           onClick={() => speak(healthCondition ? `Health conditions entered: ${healthCondition}` : "Health conditions field is empty")}
                           aria-label="Read health conditions aloud"
                         >
-                          <VolumeUp className="h-4 w-4" />
+                          <Volume className="h-4 w-4" />
                           <span className="sr-only">Read aloud</span>
                         </Button>
                       </div>
@@ -620,7 +619,7 @@ const Login = () => {
                             onClick={() => speak(height ? `Height entered: ${height} centimeters` : "Height field is empty")}
                             aria-label="Read height aloud"
                           >
-                            <VolumeUp className="h-4 w-4" />
+                            <Volume className="h-4 w-4" />
                             <span className="sr-only">Read aloud</span>
                           </Button>
                         </div>
@@ -649,7 +648,7 @@ const Login = () => {
                             onClick={() => speak(weight ? `Weight entered: ${weight} kilograms` : "Weight field is empty")}
                             aria-label="Read weight aloud"
                           >
-                            <VolumeUp className="h-4 w-4" />
+                            <Volume className="h-4 w-4" />
                             <span className="sr-only">Read aloud</span>
                           </Button>
                         </div>
@@ -770,7 +769,7 @@ const Login = () => {
                 onClick={() => announceInfo("ElderCare testimonial: ElderCare has been a lifesaver for our family. The caregivers are professional, compassionate, and truly care about my mother's wellbeing. By Jennifer H., daughter of ElderCare client. Join thousands of families who trust ElderCare. Providing compassionate care for seniors since 2015. With over 5,000 caregivers, 12,000 families served, and a 4.8 out of 5 satisfaction rating.")}
                 aria-label="Read testimonial and statistics aloud"
               >
-                <VolumeUp size={16} />
+                <Volume size={16} />
                 <span>Read Aloud</span>
               </Button>
             </div>
