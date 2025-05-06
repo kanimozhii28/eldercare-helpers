@@ -75,7 +75,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signUp = async (email: string, password: string, userData: any) => {
     try {
-      const { error } = await supabase.auth.signUp({ 
+      const { error: signUpError, data } = await supabase.auth.signUp({ 
         email, 
         password,
         options: {
@@ -86,44 +86,53 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       });
 
-      if (error) {
+      if (signUpError) {
         toast({
           title: "Sign up failed",
-          description: error.message,
+          description: signUpError.message,
           variant: "destructive"
         });
-        throw error;
+        throw signUpError;
       }
 
-      // Update the profile with additional user data
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({
-          first_name: userData.first_name,
-          last_name: userData.last_name,
-          date_of_birth: userData.date_of_birth,
-          phone_number: userData.phone_number,
-          emergency_contact: userData.emergency_contact,
-          health_condition: userData.health_condition,
-          under_treatment: userData.under_treatment === 'yes',
-          gender: userData.gender,
-          height: userData.height,
-          weight: userData.weight,
-          blood_group: userData.blood_group,
-          address: userData.address,
-        })
-        .eq('id', (await supabase.auth.getUser()).data.user?.id);
+      // Make sure we have a user before trying to update the profile
+      if (data.user) {
+        // Update the profile with additional user data
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({
+            first_name: userData.first_name,
+            last_name: userData.last_name,
+            date_of_birth: userData.date_of_birth,
+            phone_number: userData.phone_number,
+            emergency_contact: userData.emergency_contact,
+            health_condition: userData.health_condition,
+            under_treatment: userData.under_treatment === 'yes',
+            gender: userData.gender,
+            height: userData.height,
+            weight: userData.weight,
+            blood_group: userData.blood_group,
+            address: userData.address,
+          })
+          .eq('id', data.user.id);
 
-      if (profileError) {
-        toast({
-          title: "Profile update failed",
-          description: profileError.message,
-          variant: "destructive"
-        });
+        if (profileError) {
+          toast({
+            title: "Profile update failed",
+            description: profileError.message,
+            variant: "destructive"
+          });
+        } else {
+          toast({
+            title: "Account created",
+            description: "Your account has been created successfully. You can now sign in."
+          });
+        }
       } else {
         toast({
-          title: "Account created",
-          description: "Your account has been created successfully. You can now sign in."
+          title: "Sign up issue",
+          description: "Account created but user data is unavailable. Please contact support.",
+          variant: "destructive"
         });
       }
     } catch (error) {
