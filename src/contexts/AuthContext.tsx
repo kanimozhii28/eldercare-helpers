@@ -13,6 +13,7 @@ interface AuthContextProps {
   signUp: (email: string, password: string, userData: any) => Promise<void>;
   signOut: () => Promise<void>;
   updateProfile: (data: any) => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
@@ -51,15 +52,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { error, data } = await supabase.auth.signInWithPassword({ email, password });
       
       if (error) {
+        // Special handling for different error types
+        if (error.message.includes("Email not confirmed")) {
+          toast({
+            title: "Email not confirmed",
+            description: "Please check your email inbox and confirm your email address before signing in.",
+            variant: "destructive"
+          });
+        } else {
+          toast({
+            title: "Sign in failed",
+            description: error.message,
+            variant: "destructive"
+          });
+        }
+        return;
+      }
+      
+      if (!data?.user) {
         toast({
           title: "Sign in failed",
-          description: error.message,
+          description: "User information could not be retrieved.",
           variant: "destructive"
         });
-        throw error;
+        return;
       }
       
       toast({
@@ -68,8 +87,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       
       navigate('/home');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error during sign in:', error);
+      toast({
+        title: "Sign in error",
+        description: error?.message || "An unexpected error occurred during sign in.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -82,7 +106,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           data: {
             first_name: userData.first_name,
             last_name: userData.last_name
-          }
+          },
+          emailRedirectTo: window.location.origin + '/login'
         }
       });
 
@@ -125,7 +150,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } else {
           toast({
             title: "Account created",
-            description: "Your account has been created successfully. You can now sign in."
+            description: "Please check your email for a confirmation link to complete your registration.",
           });
         }
       } else {
@@ -137,6 +162,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     } catch (error) {
       console.error('Error during sign up:', error);
+    }
+  };
+
+  const resetPassword = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/reset-password',
+      });
+      
+      if (error) {
+        toast({
+          title: "Password reset failed",
+          description: error.message,
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      toast({
+        title: "Password reset email sent",
+        description: "Check your email for the password reset link"
+      });
+      
+      navigate('/login');
+    } catch (error: any) {
+      console.error('Error during password reset:', error);
+      toast({
+        title: "Password reset error",
+        description: error?.message || "An unexpected error occurred",
+        variant: "destructive"
+      });
     }
   };
 
@@ -189,7 +245,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signIn,
     signUp,
     signOut,
-    updateProfile
+    updateProfile,
+    resetPassword
   };
 
   return (

@@ -10,6 +10,7 @@ import Services from "./pages/Services";
 import Caregivers from "./pages/Caregivers";
 import HowItWorks from "./pages/HowItWorks";
 import Login from "./pages/Login";
+import ForgotPassword from "./pages/ForgotPassword"; 
 import NotFound from "./pages/NotFound";
 import ServiceDetail from "./pages/ServiceDetail";
 import CaregiverBooking from "./pages/CaregiverBooking";
@@ -48,6 +49,7 @@ const AppWithAuth = () => {
     <>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/" element={<Navigate to="/login" replace />} />
         
         {/* Protected Routes */}
