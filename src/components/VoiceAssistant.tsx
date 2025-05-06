@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Mic, X, MessageSquare, Loader, MicOff, Command, Info, HelpCircle, Home, VolumeUp } from 'lucide-react';
+import { Mic, X, MessageSquare, Loader, MicOff, Command, Info, HelpCircle, Home, Volume } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -559,7 +559,7 @@ const VoiceAssistant = () => {
                               onClick={() => speak(message.text)}
                               aria-label="Read response aloud"
                             >
-                              <VolumeUp className="h-4 w-4 mr-1" />
+                              <Volume className="h-4 w-4 mr-1" />
                               <span className="text-xs">Read Aloud</span>
                             </Button>
                           )}
@@ -646,7 +646,7 @@ const VoiceAssistant = () => {
                       className="mt-2"
                       onClick={() => speak("Try saying: Find a cooking caregiver, How do I book a caregiver, or I need help with medical care. You can also type your question in the input box below.")}
                     >
-                      <VolumeUp className="h-4 w-4 mr-1" /> Read Options Aloud
+                      <Volume className="h-4 w-4 mr-1" /> Read Options Aloud
                     </Button>
                   </div>
                 </motion.div>
