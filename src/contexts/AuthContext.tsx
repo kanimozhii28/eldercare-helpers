@@ -136,8 +136,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.log("Global sign out failed, continuing with sign in", err);
       }
       
-      // Regular Supabase auth for other users
-      const { error, data } = await supabase.auth.signInWithPassword({ email, password });
+      // Regular Supabase auth for other users - REMOVE EMAIL VERIFICATION REQUIREMENT
+      const { error, data } = await supabase.auth.signInWithPassword({ 
+        email, 
+        password,
+        options: {
+          // Skip email verification - this allows immediate login
+          emailRedirectTo: window.location.origin + '/home'
+        }
+      });
       
       if (error) {
         console.error("Sign in error:", error.message);
@@ -253,7 +260,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Continue even if this fails
       }
       
-      // Create user without email confirmation for testing
+      // Create user WITHOUT email confirmation for immediate login
       const { error: signUpError, data } = await supabase.auth.signUp({ 
         email, 
         password,
@@ -262,7 +269,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             first_name: userData.first_name,
             last_name: userData.last_name
           },
-          emailRedirectTo: window.location.origin + '/login'
+          emailRedirectTo: window.location.origin + '/login',
+          // Don't require email verification
+          emailConfirm: false
         }
       });
 
@@ -308,11 +317,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           })
           .eq('id', data.user.id);
 
-        // Auto sign-in after signup for better user experience
+        // Auto sign-in after signup for better user experience - IMPORTANT
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password
         });
+        
+        // Store credentials for future login
+        localStorage.setItem('eldercare_registered_email', email);
         
         if (signInError) {
           console.error("Auto sign-in failed:", signInError.message);

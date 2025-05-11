@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, UserIcon, KeyIcon, Calendar, Phone, Heart, Ruler, Weight, Droplet, Volume, AlertCircle } from 'lucide-react';
@@ -49,6 +50,19 @@ const Login = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { speak } = useSpeechSynthesis();
+
+  // Check for stored credentials
+  useEffect(() => {
+    const storedEmail = localStorage.getItem('eldercare_registered_email');
+    if (storedEmail) {
+      setEmail(storedEmail);
+      speak("Found a previously registered email. You can sign in with your password.");
+      toast({
+        title: "Email pre-filled",
+        description: "We found your previously registered email. Please enter your password to continue.",
+      });
+    }
+  }, []);
 
   useEffect(() => {
     // If user is already logged in, redirect to home
@@ -193,7 +207,10 @@ const Login = () => {
 
       console.log("Sign up attempt with:", email);
       await signUp(email, password, userData);
-      // Note: signUp function will handle the navigation and feedback
+      
+      // Save the email for future logins
+      localStorage.setItem('eldercare_registered_email', email);
+      
     } catch (error: any) {
       console.error('Error during signup:', error);
       setFormError(error.message || 'Error during signup. Please try again.');
