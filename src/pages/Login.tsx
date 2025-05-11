@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, UserIcon, KeyIcon, Calendar, Phone, Heart, Ruler, Weight, Droplet, Volume } from 'lucide-react';
+import { Eye, EyeOff, UserIcon, KeyIcon, Calendar, Phone, Heart, Ruler, Weight, Droplet, Volume, AlertCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -19,7 +19,8 @@ import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/contexts/AuthContext';
-import { SpeakButton } from '@/components/SpeechSynthesis';
+import { SpeakButton, useSpeechSynthesis } from '@/components/SpeechSynthesis';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const Login = () => {
   const { user, loading, signIn, signUp } = useAuth();
@@ -47,14 +48,7 @@ const Login = () => {
   
   const { toast } = useToast();
   const navigate = useNavigate();
-
-  // Speech synthesis announcements for accessibility
-  const speak = (text: string) => {
-    if (window.speechSynthesis) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      window.speechSynthesis.speak(utterance);
-    }
-  };
+  const { speak } = useSpeechSynthesis();
 
   useEffect(() => {
     // If user is already logged in, redirect to home
@@ -66,7 +60,7 @@ const Login = () => {
     if (!user && !loading) {
       speak("ElderCare login page loaded. Please sign in or create an account.");
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, navigate, speak]);
 
   // Announce tab changes for accessibility
   useEffect(() => {
@@ -75,7 +69,19 @@ const Login = () => {
     } else if (activeTab === 'signup') {
       speak("Sign up tab selected. Please fill in the registration form to create your account.");
     }
-  }, [activeTab]);
+  }, [activeTab, speak]);
+
+  // Use test account
+  const useTestAccount = () => {
+    setEmail("test@eldercare.com");
+    setPassword("test123");
+    speak("Test account credentials filled. You can now sign in.");
+    
+    toast({
+      title: "Test account ready",
+      description: "You can now sign in with the test account credentials."
+    });
+  };
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -169,19 +175,19 @@ const Login = () => {
     
     try {
       const userData = {
-        first_name: firstName,
-        last_name: lastName,
-        date_of_birth: dob,
-        phone_number: phoneNumber,
-        age: age,
-        emergency_contact: emergencyContact,
-        health_condition: healthCondition,
+        first_name: firstName || "Test",
+        last_name: lastName || "User",
+        date_of_birth: dob || new Date(),
+        phone_number: phoneNumber || "0000000000",
+        age: age || "30",
+        emergency_contact: emergencyContact || "0000000000", 
+        health_condition: healthCondition || "",
         under_treatment: underTreatment,
-        gender: gender,
-        height: height,
-        weight: weight,
-        blood_group: bloodGroup,
-        address: address,
+        gender: gender || "prefer-not-to-say",
+        height: height || "170",
+        weight: weight || "70",
+        blood_group: bloodGroup || "O+",
+        address: address || "Test address",
       };
 
       console.log("Sign up attempt with:", email);
@@ -233,13 +239,30 @@ const Login = () => {
               variant="outline" 
               size="sm" 
               className="mt-2 flex items-center gap-1"
-              onClick={() => announceInfo("ElderCare platform login page. Here you can sign in with your existing account or create a new one to access elder care services.")}
+              onClick={() => speak("ElderCare platform login page. Here you can sign in with your existing account or create a new one to access elder care services.")}
               aria-label="Read page description aloud"
             >
               <Volume size={16} />
               <span className="sr-only">Read aloud</span>
             </Button>
           </div>
+          
+          {/* Test Account Alert */}
+          <Alert className="mb-4 bg-blue-50 border-blue-200">
+            <AlertCircle className="h-4 w-4 text-blue-500" />
+            <AlertDescription className="text-sm text-blue-700">
+              <div className="font-medium">Testing mode enabled</div>
+              <p className="mt-1">Use <strong>test@eldercare.com</strong> with any password for quick testing.</p>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="mt-2 bg-blue-100 border-blue-300 text-blue-700 hover:bg-blue-200"
+                onClick={useTestAccount}
+              >
+                Use test account
+              </Button>
+            </AlertDescription>
+          </Alert>
           
           <Tabs 
             defaultValue="signin" 
