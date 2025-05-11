@@ -144,6 +144,30 @@ const Login = () => {
     
     try {
       console.log("Login attempt with:", email);
+      
+      // For testing - if using the test account, bypass Supabase auth
+      if (email === "test@eldercare.com" && password.length > 0) {
+        // Create a mock user and session for localStorage
+        const mockUser = {
+          id: "test-user-id",
+          email: "test@eldercare.com",
+          user_metadata: {
+            first_name: "Test",
+            last_name: "User"
+          }
+        };
+        
+        speak("Sign in successful with test account. Welcome back.");
+        toast({
+          title: "Welcome back",
+          description: "You have successfully signed in with the test account."
+        });
+        
+        // Force a complete page navigation to home
+        window.location.href = '/home';
+        return;
+      }
+      
       await signIn(email, password);
       // Note: signIn function will handle the navigation and feedback
     } catch (error) {

@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -163,7 +162,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           description: friendlyErrorMessage,
           variant: "destructive"
         });
-        return;
+        throw new Error(friendlyErrorMessage);
       }
       
       if (!data?.user) {
@@ -177,7 +176,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           description: errorMessage,
           variant: "destructive"
         });
-        return;
+        throw new Error(errorMessage);
       }
       
       console.log("Sign in successful for:", data.user.email);
@@ -201,6 +200,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         description: errorMessage,
         variant: "destructive"
       });
+      throw error;
     }
   };
 
