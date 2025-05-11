@@ -43,10 +43,10 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-// Main App with authentication wrapped routes
-const AppWithAuth = () => {
+// Routes Component that uses the AuthProvider
+const AppRoutes = () => {
   return (
-    <>
+    <AuthProvider>
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -70,7 +70,7 @@ const AppWithAuth = () => {
       </Routes>
       <SOSButton />
       <VoiceAssistant />
-    </>
+    </AuthProvider>
   );
 };
 
@@ -80,9 +80,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <AuthProvider>
-          <AppWithAuth />
-        </AuthProvider>
+        <AppRoutes />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
