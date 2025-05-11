@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, UserIcon, KeyIcon, Calendar, Phone, Heart, Ruler, Weight, Droplet, Volume, AlertCircle } from 'lucide-react';
@@ -843,4 +844,38 @@ const Login = () => {
       <div className="hidden md:block md:w-1/2 bg-eldercare-blueGray">
         <div className="h-full flex items-center justify-center p-8">
           <div className="max-w-md">
-            <div className="bg-white p
+            <div className="bg-white p-6 rounded-lg shadow-lg">
+              <h3 className="text-xl font-bold mb-4">Welcome to ElderCare</h3>
+              <p className="mb-4">Your trusted platform for elderly care services.</p>
+              <ul className="space-y-2 mb-4">
+                <li className="flex items-center">
+                  <div className="bg-blue-100 p-1 rounded mr-2">
+                    <Heart size={16} className="text-blue-600" />
+                  </div>
+                  <span>Professional caregivers</span>
+                </li>
+                <li className="flex items-center">
+                  <div className="bg-blue-100 p-1 rounded mr-2">
+                    <Calendar size={16} className="text-blue-600" />
+                  </div>
+                  <span>Flexible scheduling</span>
+                </li>
+                <li className="flex items-center">
+                  <div className="bg-blue-100 p-1 rounded mr-2">
+                    <AlertCircle size={16} className="text-blue-600" />
+                  </div>
+                  <span>24/7 emergency support</span>
+                </li>
+              </ul>
+              <p className="text-sm text-gray-600">
+                Sign up today to connect with qualified caregivers in your area.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Login;
