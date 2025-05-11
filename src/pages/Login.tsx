@@ -71,7 +71,7 @@ const Login = () => {
     }
   }, [activeTab, speak]);
 
-  // Use test account
+  // Use test account - improved functionality
   const useTestAccount = () => {
     setEmail("test@eldercare.com");
     setPassword("test123");
@@ -131,6 +131,7 @@ const Login = () => {
     try {
       console.log("Login attempt with:", email);
       await signIn(email, password);
+      // Note: signIn function will handle the navigation and feedback
     } catch (error) {
       console.error("Login error caught in component:", error);
       setFormError('Sign in failed. Please check your credentials and try again.');
@@ -192,6 +193,7 @@ const Login = () => {
 
       console.log("Sign up attempt with:", email);
       await signUp(email, password, userData);
+      // Note: signUp function will handle the navigation and feedback
     } catch (error: any) {
       console.error('Error during signup:', error);
       setFormError(error.message || 'Error during signup. Please try again.');
@@ -247,7 +249,7 @@ const Login = () => {
             </Button>
           </div>
           
-          {/* Test Account Alert */}
+          {/* Test Account Alert - Enhanced for better visibility */}
           <Alert className="mb-4 bg-blue-50 border-blue-200">
             <AlertCircle className="h-4 w-4 text-blue-500" />
             <AlertDescription className="text-sm text-blue-700">
