@@ -123,7 +123,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           description: "You have successfully signed in."
         });
         
-        navigate('/home');
+        // Force a complete page navigation to home
+        window.location.href = '/home';
         return;
       }
       
@@ -136,14 +137,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.log("Global sign out failed, continuing with sign in", err);
       }
       
-      // Regular Supabase auth for other users - REMOVE EMAIL VERIFICATION REQUIREMENT
+      // Regular Supabase auth for other users
       const { error, data } = await supabase.auth.signInWithPassword({ 
         email, 
-        password,
-        options: {
-          // Skip email verification - this allows immediate login
-          emailRedirectTo: window.location.origin + '/home'
-        }
+        password
       });
       
       if (error) {
@@ -249,7 +246,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           description: "Your test account has been created successfully.",
         });
         
-        navigate('/home');
+        // Store email for future logins
+        localStorage.setItem('eldercare_registered_email', email);
+        
+        // Force navigation to home
+        window.location.href = '/home';
         return;
       }
       
@@ -260,7 +261,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Continue even if this fails
       }
       
-      // Create user WITHOUT email confirmation for immediate login
+      // Create user (no need for email confirmation)
       const { error: signUpError, data } = await supabase.auth.signUp({ 
         email, 
         password,
@@ -269,9 +270,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             first_name: userData.first_name,
             last_name: userData.last_name
           },
-          emailRedirectTo: window.location.origin + '/login',
-          // Don't require email verification
-          emailConfirm: false
+          emailRedirectTo: window.location.origin + '/login'
         }
       });
 
@@ -317,7 +316,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           })
           .eq('id', data.user.id);
 
-        // Auto sign-in after signup for better user experience - IMPORTANT
+        // Auto sign-in after signup for better user experience
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password
@@ -340,7 +339,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             title: "Account created",
             description: "Your account has been created successfully and you are now signed in.",
           });
-          navigate('/home');
+          // Force navigation to home page
+          window.location.href = '/home';
         }
       } else {
         console.error("No user data returned after sign up");

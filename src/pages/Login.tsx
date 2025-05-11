@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, UserIcon, KeyIcon, Calendar, Phone, Heart, Ruler, Weight, Droplet, Volume, AlertCircle } from 'lucide-react';
@@ -844,80 +843,4 @@ const Login = () => {
       <div className="hidden md:block md:w-1/2 bg-eldercare-blueGray">
         <div className="h-full flex items-center justify-center p-8">
           <div className="max-w-md">
-            <div className="bg-white p-8 rounded-xl shadow-md">
-              <div className="mb-6">
-                <div className="flex -space-x-2 overflow-hidden">
-                  <img
-                    className="inline-block h-10 w-10 rounded-full ring-2 ring-white"
-                    src="https://images.unsplash.com/photo-1580489944761-15a19d654956?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3"
-                    alt="Profile image of a woman"
-                  />
-                  <img
-                    className="inline-block h-10 w-10 rounded-full ring-2 ring-white"
-                    src="https://images.unsplash.com/photo-1566492031773-4f4e44671857?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3"
-                    alt="Profile image of an older man"
-                  />
-                  <img
-                    className="inline-block h-10 w-10 rounded-full ring-2 ring-white"
-                    src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3"
-                    alt="Profile image of a woman with glasses"
-                  />
-                </div>
-              </div>
-              <div className="flex items-start mb-4">
-                <div className="flex-shrink-0">
-                  <div className="h-8 w-8 rounded-full bg-eldercare-lightBlue flex items-center justify-center">
-                    <svg className="h-4 w-4 text-eldercare-blue fill-eldercare-blue" viewBox="0 0 24 24">
-                      <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
-                    </svg>
-                  </div>
-                </div>
-                <div className="ml-3">
-                  <p className="text-sm font-medium text-gray-900">"ElderCare has been a lifesaver for our family. The caregivers are professional, compassionate, and truly care about my mother's wellbeing."</p>
-                </div>
-              </div>
-              <div className="text-sm text-gray-500">
-                <p className="font-medium">Jennifer H.</p>
-                <p>Daughter of ElderCare client</p>
-              </div>
-            </div>
-            
-            <div className="mt-8 text-center">
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Join thousands of families who trust ElderCare</h3>
-              <p className="text-gray-600">Providing compassionate care for seniors since 2015</p>
-              
-              <div className="mt-6 flex justify-center space-x-6">
-                <div className="text-center">
-                  <p className="text-3xl font-bold text-eldercare-blue">5,000+</p>
-                  <p className="text-sm text-gray-600">Caregivers</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-3xl font-bold text-eldercare-blue">12,000+</p>
-                  <p className="text-sm text-gray-600">Families</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-3xl font-bold text-eldercare-blue">4.8/5</p>
-                  <p className="text-sm text-gray-600">Satisfaction</p>
-                </div>
-              </div>
-              
-              {/* Button to read testimonial and statistics aloud */}
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="mt-4 flex items-center gap-1"
-                onClick={() => announceInfo("ElderCare testimonial: ElderCare has been a lifesaver for our family. The caregivers are professional, compassionate, and truly care about my mother's wellbeing. By Jennifer H., daughter of ElderCare client. Join thousands of families who trust ElderCare. Providing compassionate care for seniors since 2015. With over 5,000 caregivers, 12,000 families served, and a 4.8 out of 5 satisfaction rating.")}
-                aria-label="Read testimonial and statistics aloud"
-              >
-                <Volume size={16} />
-                <span>Read Aloud</span>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default Login;
+            <div className="bg-white p
