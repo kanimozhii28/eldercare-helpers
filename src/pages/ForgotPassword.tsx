@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, UserIcon } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -12,11 +12,6 @@ const ForgotPassword = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { resetPassword } = useAuth();
   const { speak } = useSpeechSynthesis();
-
-  useEffect(() => {
-    // Announce the page for screen reader users when it loads
-    speak("Password reset page. Enter your email address to reset your password.");
-  }, []);
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();

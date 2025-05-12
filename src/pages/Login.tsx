@@ -1,25 +1,22 @@
 
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, UserIcon, KeyIcon } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '@/contexts/AuthContext';
 
-// Login form schema
+// Form schemas
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
-// Sign up form schema
 const signupSchema = z.object({
   email: z.string().email("Please enter a valid email"),
   password: z.string().min(6, "Password must be at least 6 characters"),
@@ -28,11 +25,10 @@ const signupSchema = z.object({
 });
 
 const Login = () => {
-  const { user, loading, signIn, signUp } = useAuth();
+  const { signIn, signUp } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('signin');
-  const { toast } = useToast();
   const navigate = useNavigate();
   
   const loginForm = useForm({
@@ -56,12 +52,11 @@ const Login = () => {
   // Handle login submission
   const handleLogin = async (values: z.infer<typeof loginSchema>) => {
     setIsLoading(true);
-    
     try {
       await signIn(values.email, values.password);
       navigate('/home');
-    } catch (error: any) {
-      console.error("Login error caught in component:", error);
+    } catch (error) {
+      console.error("Login error:", error);
     } finally {
       setIsLoading(false);
     }
@@ -70,7 +65,6 @@ const Login = () => {
   // Handle signup submission
   const handleSignup = async (values: z.infer<typeof signupSchema>) => {
     setIsLoading(true);
-    
     try {
       const userData = {
         first_name: values.firstName,
@@ -78,36 +72,14 @@ const Login = () => {
       };
       
       await signUp(values.email, values.password, userData);
-      
-      toast({
-        title: "Account created",
-        description: "Your account has been created. You can now sign in.",
-      });
-      
-      // Switch to sign in tab
       setActiveTab('signin');
       loginForm.setValue('email', values.email);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error during signup:', error);
     } finally {
       setIsLoading(false);
     }
   };
-
-  // If still loading auth state, show loading indicator
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>Loading...</p>
-      </div>
-    );
-  }
-  
-  // If user is already logged in, redirect to home
-  if (user) {
-    navigate('/home');
-    return null;
-  }
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
@@ -181,7 +153,6 @@ const Login = () => {
                               type="button"
                               className="pr-3"
                               onClick={() => setShowPassword(!showPassword)}
-                              aria-label={showPassword ? "Hide password" : "Show password"}
                             >
                               {showPassword ? (
                                 <EyeOff className="h-5 w-5 text-gray-400" />
@@ -287,7 +258,6 @@ const Login = () => {
                               type="button"
                               className="pr-3"
                               onClick={() => setShowPassword(!showPassword)}
-                              aria-label={showPassword ? "Hide password" : "Show password"}
                             >
                               {showPassword ? (
                                 <EyeOff className="h-5 w-5 text-gray-400" />
