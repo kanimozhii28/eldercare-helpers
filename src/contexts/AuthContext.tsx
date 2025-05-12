@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -43,16 +44,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { toast } = useToast();
   const { speak } = useSpeechSynthesis();
 
+  // Initialize auth state
   useEffect(() => {
+    console.log("Setting up auth provider...");
+    
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        console.log("Auth state changed:", event, session?.user?.email);
+        console.log("Auth state changed:", event, !!session);
         setSession(session);
         setUser(session?.user ?? null);
         
         if (event === 'SIGNED_IN') {
-          navigate('/home');
+          // Use timeout to prevent potential deadlocks
+          setTimeout(() => {
+            navigate('/home');
+          }, 0);
         } else if (event === 'SIGNED_OUT') {
           navigate('/login');
         }
@@ -61,7 +68,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log("Existing session check:", session?.user?.email);
+      console.log("Existing session check:", !!session);
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
@@ -119,17 +126,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         speak("Sign in successful. Welcome back.");
         toast({
           title: "Welcome back",
-          description: "You have successfully signed in."
+          description: "You have successfully signed in with the test account."
         });
         
-        // Force a complete page navigation to home
+        // Navigate to home after setting user state
         window.location.href = '/home';
         return;
       }
       
-      // Try Supabase auth for non-test users
+      // Try Supabase auth for non-test users - always attempt global signout first
       try {
-        // Attempt global sign out first to clear any existing sessions
         await supabase.auth.signOut({ scope: 'global' });
       } catch (err) {
         // Continue even if this fails
@@ -162,6 +168,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           description: friendlyErrorMessage,
           variant: "destructive"
         });
+        
+        // Throw error to be caught in the component
         throw new Error(friendlyErrorMessage);
       }
       
@@ -187,20 +195,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         description: "You have successfully signed in."
       });
       
-      // Force a page reload to ensure a clean state
+      // Force page reload
       window.location.href = '/home';
+      
     } catch (error: any) {
       console.error('Error during sign in:', error);
-      const errorMessage = error?.message || "An unexpected error occurred during sign in.";
-      
-      speak(errorMessage);
-      
-      toast({
-        title: "Sign in error",
-        description: errorMessage,
-        variant: "destructive"
-      });
-      throw error;
+      throw error; // Let the component handle the UI display of errors
     }
   };
 
@@ -280,8 +280,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             blood_group: userData.blood_group,
             address: userData.address,
           },
-          // Remove emailRedirectTo to ensure email verification is not required
-          // and users can log in immediately
+          emailRedirectTo: window.location.origin + '/login'
         }
       });
 
@@ -301,7 +300,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           description: friendlyErrorMessage,
           variant: "destructive"
         });
-        return;
+        throw new Error(friendlyErrorMessage);
       }
 
       // Handle successful signup
@@ -311,53 +310,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Store credentials for future login
         localStorage.setItem('eldercare_registered_email', email);
         
-        // Auto sign-in after signup for better user experience
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email,
-          password
-        });
-        
-        if (signInError) {
-          console.error("Auto sign-in failed:", signInError.message);
-          speak("Account created successfully. Please sign in with your credentials.");
-          toast({
-            title: "Account created",
-            description: "Your account has been created successfully. Please sign in.",
-          });
-          navigate('/login');
-        } else {
+        // Check if email confirmation is required
+        if (data.session) {
+          // User is automatically signed in (email confirmation not required)
           speak("Account created and signed in successfully. Welcome to ElderCare.");
+          
           toast({
             title: "Account created",
             description: "Your account has been created successfully and you are now signed in.",
           });
+          
           // Force navigation to home page
           window.location.href = '/home';
+        } else {
+          // Email confirmation is likely required
+          speak("Account created successfully. Please check your email to confirm your account.");
+          
+          toast({
+            title: "Account created",
+            description: "Your account has been created. Please check your email to confirm your account before signing in.",
+          });
+          
+          navigate('/login');
         }
       } else {
         console.error("No user data returned after sign up");
-        const errorMessage = "Account may have been created but user data is unavailable. Please try signing in with your credentials.";
-        
-        speak(errorMessage);
-        
-        toast({
-          title: "Sign up issue",
-          description: errorMessage,
-        });
-        
-        navigate('/login');
+        throw new Error("Account may have been created but user data is unavailable. Please try signing in with your credentials.");
       }
     } catch (error: any) {
       console.error('Error during sign up:', error);
-      const errorMessage = error?.message || "An unexpected error occurred during sign up.";
-      
-      speak(errorMessage);
-      
-      toast({
-        title: "Sign up error",
-        description: errorMessage,
-        variant: "destructive"
-      });
+      throw error; // Let component handle UI display of errors
     }
   };
 
@@ -386,7 +368,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           description: error.message,
           variant: "destructive"
         });
-        return;
+        throw error;
       }
       
       speak("Password reset email sent. Check your email for the password reset link.");
@@ -399,13 +381,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       navigate('/login');
     } catch (error: any) {
       console.error('Error during password reset:', error);
-      speak(`Password reset error: ${error?.message || "An unexpected error occurred"}`);
-      
-      toast({
-        title: "Password reset error",
-        description: error?.message || "An unexpected error occurred",
-        variant: "destructive"
-      });
+      throw error;
     }
   };
 
@@ -428,12 +404,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       window.location.href = '/login';
     } catch (error: any) {
       console.error('Error during sign out:', error);
-      speak("Sign out failed. An error occurred while signing out.");
-      
-      toast({
-        title: "Sign out failed",
-        description: "An error occurred while signing out."
-      });
+      throw error;
     }
   };
 
@@ -474,13 +445,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
     } catch (error: any) {
       console.error('Error updating profile:', error);
-      speak(`Update error: ${error?.message || "An unexpected error occurred"}`);
-      
-      toast({
-        title: "Update error",
-        description: error?.message || "An unexpected error occurred",
-        variant: "destructive"
-      });
+      throw error;
     }
   };
 

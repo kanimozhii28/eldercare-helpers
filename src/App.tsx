@@ -43,7 +43,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-// Routes Component that uses the AuthProvider
+// AppRoutes Component that contains all the routes
 const AppRoutes = () => {
   return (
     <>
@@ -74,6 +74,7 @@ const AppRoutes = () => {
   );
 };
 
+// Main App component
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
