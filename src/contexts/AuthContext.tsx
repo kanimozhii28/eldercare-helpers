@@ -5,6 +5,24 @@ import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 
+// Helper function to clean up auth state
+const cleanupAuthState = () => {
+  // Remove standard auth tokens
+  localStorage.removeItem('supabase.auth.token');
+  // Remove all Supabase auth keys from localStorage
+  Object.keys(localStorage).forEach((key) => {
+    if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+      localStorage.removeItem(key);
+    }
+  });
+  // Remove from sessionStorage if in use
+  Object.keys(sessionStorage || {}).forEach((key) => {
+    if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+      sessionStorage.removeItem(key);
+    }
+  });
+};
+
 interface AuthContextProps {
   user: User | null;
   session: Session | null;
@@ -53,6 +71,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Simple sign in function
   const signIn = async (email: string, password: string) => {
     try {
+      // Clean up auth state before signing in
+      cleanupAuthState();
+
+      // Try global sign out first
+      try {
+        await supabase.auth.signOut({ scope: 'global' });
+      } catch (error) {
+        // Continue even if this fails
+      }
+
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       
       if (error) {
@@ -77,6 +105,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Simple sign up function
   const signUp = async (email: string, password: string, userData: any) => {
     try {
+      // Clean up auth state before signing up
+      cleanupAuthState();
+      
       const { error } = await supabase.auth.signUp({ 
         email, 
         password,
@@ -96,6 +127,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         title: "Account created",
         description: "Your account has been created successfully."
       });
+      
+      // After successful signup, sign in automatically
+      await signIn(email, password);
     } catch (error: any) {
       console.error('Error during sign up:', error);
       throw error;
@@ -105,7 +139,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Simple sign out function
   const signOut = async () => {
     try {
-      await supabase.auth.signOut();
+      // Clean up auth state
+      cleanupAuthState();
+      
+      // Attempt global sign out
+      await supabase.auth.signOut({ scope: 'global' });
       
       toast({
         title: "Signed out",

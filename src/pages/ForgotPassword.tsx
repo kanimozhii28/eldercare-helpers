@@ -10,16 +10,22 @@ import SpeakButton, { useSpeechSynthesis } from '@/components/SpeechSynthesis';
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const { resetPassword } = useAuth();
   const { speak } = useSpeechSynthesis();
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setErrorMessage('');
     speak("Processing your password reset request. Please wait.");
     
     try {
       await resetPassword(email);
+      setSuccess(true);
+    } catch (error: any) {
+      setErrorMessage(error.message || 'Failed to send reset link');
     } finally {
       setIsLoading(false);
     }
@@ -40,52 +46,77 @@ const ForgotPassword = () => {
           />
         </div>
         
-        <form onSubmit={handleResetPassword} className="space-y-4">
-          <div className="space-y-2">
-            <label htmlFor="email" className="text-sm font-medium">Email</label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <UserIcon className="h-5 w-5 text-gray-400" />
-              </div>
-              <Input 
-                id="email" 
-                type="email" 
-                placeholder="your@email.com"
-                className="pl-10" 
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                aria-label="Email address input field for password reset"
-              />
-              <div className="absolute right-1 top-1">
-                <SpeakButton
-                  text={email ? `Email entered: ${email}` : "Email field is empty"}
-                  iconOnly={true}
-                />
-              </div>
+        {errorMessage && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded">
+            {errorMessage}
+          </div>
+        )}
+        
+        {success ? (
+          <div className="space-y-4">
+            <div className="p-3 bg-green-50 border border-green-200 text-green-700 rounded">
+              Reset link sent. Check your email for instructions.
+            </div>
+            
+            <div className="text-center">
+              <Link 
+                to="/login" 
+                className="text-sm text-eldercare-blue hover:underline flex items-center justify-center"
+                onClick={() => speak("Returning to login page.")}
+              >
+                <ArrowLeft className="h-4 w-4 mr-1" />
+                Back to login
+              </Link>
             </div>
           </div>
-          
-          <Button 
-            type="submit" 
-            className="w-full bg-eldercare-blue hover:bg-blue-600"
-            disabled={isLoading}
-            aria-label={isLoading ? "Sending password reset email" : "Send reset link"}
-          >
-            {isLoading ? "Sending..." : "Send Reset Link"}
-          </Button>
-          
-          <div className="text-center">
-            <Link 
-              to="/login" 
-              className="text-sm text-eldercare-blue hover:underline flex items-center justify-center"
-              onClick={() => speak("Navigating back to login page.")}
+        ) : (
+          <form onSubmit={handleResetPassword} className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="email" className="text-sm font-medium">Email</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <UserIcon className="h-5 w-5 text-gray-400" />
+                </div>
+                <Input 
+                  id="email" 
+                  type="email" 
+                  placeholder="your@email.com"
+                  className="pl-10" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  aria-label="Email address input field for password reset"
+                />
+                <div className="absolute right-1 top-1">
+                  <SpeakButton
+                    text={email ? `Email entered: ${email}` : "Email field is empty"}
+                    iconOnly={true}
+                  />
+                </div>
+              </div>
+            </div>
+            
+            <Button 
+              type="submit" 
+              className="w-full bg-eldercare-blue hover:bg-blue-600"
+              disabled={isLoading}
+              aria-label={isLoading ? "Sending password reset email" : "Send reset link"}
             >
-              <ArrowLeft className="h-4 w-4 mr-1" />
-              Back to login
-            </Link>
-          </div>
-        </form>
+              {isLoading ? "Sending..." : "Send Reset Link"}
+            </Button>
+            
+            <div className="text-center">
+              <Link 
+                to="/login" 
+                className="text-sm text-eldercare-blue hover:underline flex items-center justify-center"
+                onClick={() => speak("Navigating back to login page.")}
+              >
+                <ArrowLeft className="h-4 w-4 mr-1" />
+                Back to login
+              </Link>
+            </div>
+          </form>
+        )}
       </div>
     </div>
   );
