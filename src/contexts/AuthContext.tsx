@@ -4,7 +4,6 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
-import { useSpeechSynthesis } from '@/components/SpeechSynthesis';
 
 interface AuthContextProps {
   user: User | null;
@@ -13,25 +12,15 @@ interface AuthContextProps {
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, userData: any) => Promise<void>;
   signOut: () => Promise<void>;
-  updateProfile: (data: any) => Promise<void>;
-  resetPassword: (email: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 
-// Auth state cleanup utility to prevent "limbo" states
+// Clean up auth state to prevent issues
 const cleanupAuthState = () => {
-  // Remove all Supabase auth keys from localStorage
   Object.keys(localStorage).forEach((key) => {
     if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
       localStorage.removeItem(key);
-    }
-  });
-  
-  // Remove from sessionStorage if in use
-  Object.keys(sessionStorage || {}).forEach((key) => {
-    if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
-      sessionStorage.removeItem(key);
     }
   });
 };
@@ -42,7 +31,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { speak } = useSpeechSynthesis();
 
   // Initialize auth state
   useEffect(() => {
@@ -56,7 +44,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(session?.user ?? null);
         
         if (event === 'SIGNED_IN') {
-          // Use timeout to prevent potential deadlocks
           setTimeout(() => {
             navigate('/home');
           }, 0);
@@ -81,60 +68,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       console.log("Attempting sign in for:", email);
       
-      // Always clean up auth state first to prevent limbo states
+      // Basic validation
+      if (!email || !password) {
+        const errorMessage = !email ? "Email is required" : "Password is required";
+        toast({
+          title: "Sign in failed",
+          description: errorMessage,
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Clean up auth state first to prevent limbo states
       cleanupAuthState();
       
-      // Basic validation
-      if (!email) {
-        const message = "Email is required";
-        speak(message);
-        toast({
-          title: "Sign in failed",
-          description: message,
-          variant: "destructive"
-        });
-        return;
-      }
-      
-      if (!password) {
-        const message = "Password is required";
-        speak(message);
-        toast({
-          title: "Sign in failed",
-          description: message,
-          variant: "destructive"
-        });
-        return;
-      }
-      
-      // For testing - if using the test account, bypass Supabase auth
-      if (email === "test@eldercare.com" && password.length > 0) {
-        // Create a mock user and session
-        const mockUser = {
-          id: "test-user-id",
-          email: "test@eldercare.com",
-          user_metadata: {
-            first_name: "Test",
-            last_name: "User"
-          }
-        };
-        
-        // Set the mock user and session
-        setUser(mockUser as any);
-        setSession({ user: mockUser } as any);
-        
-        speak("Sign in successful. Welcome back.");
-        toast({
-          title: "Welcome back",
-          description: "You have successfully signed in with the test account."
-        });
-        
-        // Navigate to home after setting user state
-        window.location.href = '/home';
-        return;
-      }
-      
-      // Try Supabase auth for non-test users - always attempt global signout first
+      // Try global signout first
       try {
         await supabase.auth.signOut({ scope: 'global' });
       } catch (err) {
@@ -142,7 +90,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.log("Global sign out failed, continuing with sign in", err);
       }
       
-      // Regular Supabase auth for other users
+      // Regular Supabase auth
       const { error, data } = await supabase.auth.signInWithPassword({ 
         email, 
         password
@@ -151,56 +99,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) {
         console.error("Sign in error:", error.message);
         
-        // Better explain what might be wrong
-        let friendlyErrorMessage = "The email or password you entered is incorrect. Please check your credentials and try again.";
-        
-        // Specifically identify what's wrong
-        if (error.message.includes("Email not confirmed")) {
-          friendlyErrorMessage = "Your email has not been verified yet. For testing, try using test@eldercare.com with any password.";
-        } else if (error.message.includes("Invalid login credentials")) {
-          friendlyErrorMessage = "Invalid login credentials. Please check your email and password.";
-        }
-        
-        speak(friendlyErrorMessage);
-        
         toast({
           title: "Sign in failed",
-          description: friendlyErrorMessage,
+          description: error.message,
           variant: "destructive"
         });
         
-        // Throw error to be caught in the component
-        throw new Error(friendlyErrorMessage);
+        throw new Error(error.message);
       }
-      
-      if (!data?.user) {
-        console.error("No user data returned after sign in");
-        const errorMessage = "User information could not be retrieved.";
-        
-        speak(errorMessage);
-        
-        toast({
-          title: "Sign in failed",
-          description: errorMessage,
-          variant: "destructive"
-        });
-        throw new Error(errorMessage);
-      }
-      
-      console.log("Sign in successful for:", data.user.email);
-      speak("Sign in successful. Welcome back.");
       
       toast({
         title: "Welcome back",
         description: "You have successfully signed in."
       });
-      
-      // Force page reload
-      window.location.href = '/home';
-      
     } catch (error: any) {
       console.error('Error during sign in:', error);
-      throw error; // Let the component handle the UI display of errors
+      throw error;
     }
   };
 
@@ -214,43 +128,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Basic validation
       if (!email || !password) {
         const message = !email ? "Email is required" : "Password is required";
-        speak(message);
         toast({
           title: "Sign up failed",
           description: message,
           variant: "destructive"
         });
-        return;
-      }
-      
-      // For testing - if using test account, automatically set up a user
-      if (email === "test@eldercare.com") {
-        // Create a mock user
-        const mockUser = {
-          id: "test-user-id",
-          email: "test@eldercare.com",
-          user_metadata: {
-            first_name: userData.first_name || "Test",
-            last_name: userData.last_name || "User"
-          }
-        };
-        
-        // Set the mock user and session
-        setUser(mockUser as any);
-        setSession({ user: mockUser } as any);
-        
-        speak("Account created successfully. Welcome to ElderCare.");
-        
-        toast({
-          title: "Account created",
-          description: "Your test account has been created successfully.",
-        });
-        
-        // Store email for future logins
-        localStorage.setItem('eldercare_registered_email', email);
-        
-        // Force navigation to home
-        window.location.href = '/home';
         return;
       }
       
@@ -261,8 +143,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Continue even if this fails
       }
       
-      // Create user with auto sign in enabled
-      const { error: signUpError, data } = await supabase.auth.signUp({ 
+      // Create user
+      const { error, data } = await supabase.auth.signUp({ 
         email, 
         password,
         options: {
@@ -279,108 +161,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             weight: userData.weight,
             blood_group: userData.blood_group,
             address: userData.address,
-          },
-          emailRedirectTo: window.location.origin + '/login'
+          }
         }
       });
 
-      if (signUpError) {
-        console.error("Sign up error:", signUpError.message);
-        
-        let friendlyErrorMessage = signUpError.message;
-        
-        if (signUpError.message.includes("User already registered")) {
-          friendlyErrorMessage = "An account with this email already exists. Try signing in instead.";
-        }
-        
-        speak(friendlyErrorMessage);
+      if (error) {
+        console.error("Sign up error:", error.message);
         
         toast({
           title: "Sign up failed",
-          description: friendlyErrorMessage,
-          variant: "destructive"
-        });
-        throw new Error(friendlyErrorMessage);
-      }
-
-      // Handle successful signup
-      if (data && data.user && data.user.id) {
-        console.log("User created successfully:", data.user.email);
-        
-        // Store credentials for future login
-        localStorage.setItem('eldercare_registered_email', email);
-        
-        // Check if email confirmation is required
-        if (data.session) {
-          // User is automatically signed in (email confirmation not required)
-          speak("Account created and signed in successfully. Welcome to ElderCare.");
-          
-          toast({
-            title: "Account created",
-            description: "Your account has been created successfully and you are now signed in.",
-          });
-          
-          // Force navigation to home page
-          window.location.href = '/home';
-        } else {
-          // Email confirmation is likely required
-          speak("Account created successfully. Please check your email to confirm your account.");
-          
-          toast({
-            title: "Account created",
-            description: "Your account has been created. Please check your email to confirm your account before signing in.",
-          });
-          
-          navigate('/login');
-        }
-      } else {
-        console.error("No user data returned after sign up");
-        throw new Error("Account may have been created but user data is unavailable. Please try signing in with your credentials.");
-      }
-    } catch (error: any) {
-      console.error('Error during sign up:', error);
-      throw error; // Let component handle UI display of errors
-    }
-  };
-
-  const resetPassword = async (email: string) => {
-    try {
-      if (!email) {
-        const errorMessage = "Email is required for password reset";
-        speak(errorMessage);
-        toast({
-          title: "Password reset failed",
-          description: errorMessage,
-          variant: "destructive"
-        });
-        return;
-      }
-      
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin + '/reset-password',
-      });
-      
-      if (error) {
-        speak(`Password reset failed: ${error.message}`);
-        
-        toast({
-          title: "Password reset failed",
           description: error.message,
           variant: "destructive"
         });
-        throw error;
+        throw new Error(error.message);
       }
-      
-      speak("Password reset email sent. Check your email for the password reset link.");
-      
-      toast({
-        title: "Password reset email sent",
-        description: "Check your email for the password reset link"
-      });
-      
-      navigate('/login');
+
+      // Handle successful signup
+      if (data && data.user) {
+        console.log("User created successfully:", data.user.email);
+        
+        toast({
+          title: "Account created",
+          description: "Your account has been created successfully. You can now sign in."
+        });
+        
+        navigate('/login');
+      } else {
+        console.error("No user data returned after sign up");
+        throw new Error("Account may have been created but user data is unavailable.");
+      }
     } catch (error: any) {
-      console.error('Error during password reset:', error);
+      console.error('Error during sign up:', error);
       throw error;
     }
   };
@@ -393,58 +204,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Try global signout
       await supabase.auth.signOut({ scope: 'global' });
       
-      speak("You have been successfully signed out.");
-      
       toast({
         title: "Signed out",
         description: "You have been successfully signed out."
       });
       
-      // Force page reload for clean state
-      window.location.href = '/login';
+      // Redirect to login
+      navigate('/login');
     } catch (error: any) {
       console.error('Error during sign out:', error);
-      throw error;
-    }
-  };
-
-  const updateProfile = async (data: any) => {
-    try {
-      if (!user || !user.id) {
-        speak("Update failed. User not authenticated.");
-        
-        toast({
-          title: "Update failed",
-          description: "User not authenticated",
-          variant: "destructive"
-        });
-        return;
-      }
-      
-      const { error } = await supabase
-        .from('profiles')
-        .update(data)
-        .eq('id', user.id);
-
-      if (error) {
-        speak(`Profile update failed: ${error.message}`);
-        
-        toast({
-          title: "Profile update failed",
-          description: error.message,
-          variant: "destructive"
-        });
-        throw error;
-      }
-
-      speak("Profile updated successfully.");
-      
-      toast({
-        title: "Profile updated",
-        description: "Your profile has been successfully updated."
-      });
-    } catch (error: any) {
-      console.error('Error updating profile:', error);
       throw error;
     }
   };
@@ -455,9 +223,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     loading,
     signIn,
     signUp,
-    signOut,
-    updateProfile,
-    resetPassword
+    signOut
   };
 
   return (

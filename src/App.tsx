@@ -48,9 +48,9 @@ const AppRoutes = () => {
   return (
     <>
       <Routes>
+        <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/" element={<Navigate to="/login" replace />} />
         
         {/* Protected Routes */}
         <Route path="/home" element={<ProtectedRoute><Index /></ProtectedRoute>} />
