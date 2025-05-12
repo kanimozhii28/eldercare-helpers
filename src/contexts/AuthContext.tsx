@@ -152,7 +152,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (error.message.includes("Email not confirmed")) {
           friendlyErrorMessage = "Your email has not been verified yet. For testing, try using test@eldercare.com with any password.";
         } else if (error.message.includes("Invalid login credentials")) {
-          friendlyErrorMessage = "Invalid login credentials. For testing purposes, you can use test@eldercare.com with any password.";
+          friendlyErrorMessage = "Invalid login credentials. Please check your email and password.";
         }
         
         speak(friendlyErrorMessage);
@@ -167,7 +167,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (!data?.user) {
         console.error("No user data returned after sign in");
-        const errorMessage = "User information could not be retrieved. For testing, use test@eldercare.com with any password.";
+        const errorMessage = "User information could not be retrieved.";
         
         speak(errorMessage);
         
@@ -191,7 +191,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       window.location.href = '/home';
     } catch (error: any) {
       console.error('Error during sign in:', error);
-      const errorMessage = error?.message || "An unexpected error occurred during sign in. For testing, try test@eldercare.com.";
+      const errorMessage = error?.message || "An unexpected error occurred during sign in.";
       
       speak(errorMessage);
       
@@ -261,16 +261,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Continue even if this fails
       }
       
-      // Create user (no need for email confirmation)
+      // Create user with auto sign in enabled
       const { error: signUpError, data } = await supabase.auth.signUp({ 
         email, 
         password,
         options: {
           data: {
             first_name: userData.first_name,
-            last_name: userData.last_name
+            last_name: userData.last_name,
+            date_of_birth: userData.date_of_birth,
+            phone_number: userData.phone_number,
+            emergency_contact: userData.emergency_contact,
+            health_condition: userData.health_condition,
+            under_treatment: userData.under_treatment === 'yes',
+            gender: userData.gender,
+            height: userData.height,
+            weight: userData.weight,
+            blood_group: userData.blood_group,
+            address: userData.address,
           },
-          emailRedirectTo: window.location.origin + '/login'
+          // Remove emailRedirectTo to ensure email verification is not required
+          // and users can log in immediately
         }
       });
 
@@ -280,7 +291,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         let friendlyErrorMessage = signUpError.message;
         
         if (signUpError.message.includes("User already registered")) {
-          friendlyErrorMessage = "An account with this email already exists. For testing, try using test@eldercare.com.";
+          friendlyErrorMessage = "An account with this email already exists. Try signing in instead.";
         }
         
         speak(friendlyErrorMessage);
@@ -297,33 +308,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (data && data.user && data.user.id) {
         console.log("User created successfully:", data.user.email);
         
-        // Update the profile with additional user data
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .update({
-            first_name: userData.first_name,
-            last_name: userData.last_name,
-            date_of_birth: userData.date_of_birth,
-            phone_number: userData.phone_number,
-            emergency_contact: userData.emergency_contact,
-            health_condition: userData.health_condition,
-            under_treatment: userData.under_treatment === 'yes',
-            gender: userData.gender,
-            height: userData.height,
-            weight: userData.weight,
-            blood_group: userData.blood_group,
-            address: userData.address,
-          })
-          .eq('id', data.user.id);
-
+        // Store credentials for future login
+        localStorage.setItem('eldercare_registered_email', email);
+        
         // Auto sign-in after signup for better user experience
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password
         });
-        
-        // Store credentials for future login
-        localStorage.setItem('eldercare_registered_email', email);
         
         if (signInError) {
           console.error("Auto sign-in failed:", signInError.message);
@@ -357,7 +349,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     } catch (error: any) {
       console.error('Error during sign up:', error);
-      const errorMessage = error?.message || "An unexpected error occurred during sign up. For testing, try test@eldercare.com.";
+      const errorMessage = error?.message || "An unexpected error occurred during sign up.";
       
       speak(errorMessage);
       

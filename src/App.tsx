@@ -46,7 +46,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 // Routes Component that uses the AuthProvider
 const AppRoutes = () => {
   return (
-    <AuthProvider>
+    <>
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -70,7 +70,7 @@ const AppRoutes = () => {
       </Routes>
       <SOSButton />
       <VoiceAssistant />
-    </AuthProvider>
+    </>
   );
 };
 
@@ -80,7 +80,9 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <AppRoutes />
+        <AuthProvider>
+          <AppRoutes />
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

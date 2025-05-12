@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, UserIcon, KeyIcon, Calendar, Phone, Heart, Ruler, Weight, Droplet, Volume, AlertCircle } from 'lucide-react';
@@ -143,31 +142,6 @@ const Login = () => {
     setFormError('');
     
     try {
-      console.log("Login attempt with:", email);
-      
-      // For testing - if using the test account, bypass Supabase auth
-      if (email === "test@eldercare.com" && password.length > 0) {
-        // Create a mock user and session for localStorage
-        const mockUser = {
-          id: "test-user-id",
-          email: "test@eldercare.com",
-          user_metadata: {
-            first_name: "Test",
-            last_name: "User"
-          }
-        };
-        
-        speak("Sign in successful with test account. Welcome back.");
-        toast({
-          title: "Welcome back",
-          description: "You have successfully signed in with the test account."
-        });
-        
-        // Force a complete page navigation to home
-        window.location.href = '/home';
-        return;
-      }
-      
       await signIn(email, password);
       // Note: signIn function will handle the navigation and feedback
     } catch (error) {
@@ -214,19 +188,19 @@ const Login = () => {
     
     try {
       const userData = {
-        first_name: firstName || "Test",
-        last_name: lastName || "User",
-        date_of_birth: dob || new Date(),
-        phone_number: phoneNumber || "0000000000",
-        age: age || "30",
-        emergency_contact: emergencyContact || "0000000000", 
-        health_condition: healthCondition || "",
+        first_name: firstName,
+        last_name: lastName,
+        date_of_birth: dob,
+        phone_number: phoneNumber,
+        age: age,
+        emergency_contact: emergencyContact, 
+        health_condition: healthCondition,
         under_treatment: underTreatment,
-        gender: gender || "prefer-not-to-say",
-        height: height || "170",
-        weight: weight || "70",
-        blood_group: bloodGroup || "O+",
-        address: address || "Test address",
+        gender: gender,
+        height: height,
+        weight: weight,
+        blood_group: bloodGroup,
+        address: address,
       };
 
       console.log("Sign up attempt with:", email);
